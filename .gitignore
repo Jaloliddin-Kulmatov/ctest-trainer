@@ -1,0 +1,8 @@
+.DS_Store
+.vercel
+# personal source material, not part of the public site
+.practice-source.html
+
+# not part of the site
+OASIS-6/
+site-preview/

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>C-Test Trainer · free onSET practice</title>
+<meta name="description" content="Free practice for German C-tests such as onSET: full 8-text simulations, grammar and vocabulary for A2–B2, a mistake notebook and progress tracking. No sign-up.">
+<meta property="og:title" content="C-Test Trainer · free onSET practice">
+<meta property="og:description" content="Full C-test simulations, A2–B2 grammar and vocabulary, a mistake notebook and progress tracking. No sign-up.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css">
+<script src="assets/common.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: intro with a sample C-test line, then a dashboard grid (exam date, stats, chart, focus), then the method and data tools */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:center}
+.hero h1{font-size:clamp(30px,5vw,44px);line-height:1.08}
+.hero .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.sample{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;font-family:var(--text);font-size:18px;line-height:2}
+.sample .g{font-family:var(--mono);font-size:15px;white-space:nowrap}
+.sample .g i{display:inline-block;min-width:3.4ch;border-bottom:2px solid var(--mark-line);background:var(--mark);font-style:normal;text-align:center;border-radius:3px 3px 0 0;padding:0 2px}
+.sample .g i.on{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.sample small{display:block;font-family:var(--ui);font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:8px}
+@media (max-width:760px){.hero{grid-template-columns:1fr}}
+.dash{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
+.dash > *{grid-column:span 12}
+@media (min-width:860px){.c4{grid-column:span 4}.c8{grid-column:span 8}.c6{grid-column:span 6}}
+.box h3{margin:0 0 10px;font-size:15px}
+.big{font-family:var(--mono);font-size:40px;font-weight:600;line-height:1}
+.big small{font-size:.4em;color:var(--muted);margin-left:4px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat b{display:block;font-family:var(--mono);font-size:24px;font-weight:600;line-height:1.15}
+.stat span{font-size:13px;color:var(--muted)}
+.chart svg{width:100%;height:auto;display:block}
+.chart .axis{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .line{fill:none;stroke:var(--accent);stroke-width:2.2}
+.chart .area{fill:var(--accent);opacity:.1}
+.chart .dot{fill:var(--accent)}
+.chart .last{fill:var(--card);stroke:var(--accent);stroke-width:2.5}
+.chart .lbl{font-family:var(--mono);font-size:11px;fill:var(--ink);font-weight:600}
+.catrow{display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:2px 10px;margin-bottom:10px}
+.catrow .bar{grid-column:1/-1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.catrow .bar i{display:block;height:100%;background:var(--ok)}
+.catrow.weak .bar i{background:var(--bad)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;counter-reset:s}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;counter-increment:s}
+.steps li::before{content:counter(s);display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--soft);color:var(--ink);font-family:var(--mono);font-size:12px;align-items:center;justify-content:center;margin-bottom:6px}
+.steps b{display:block;margin-bottom:2px}
+.steps span{font-size:14px;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-decoration:none;color:var(--ink)}
+.card:hover{border-color:var(--accent)}
+.card b{font-size:16px}
+.card span{font-size:14px;color:var(--muted)}
+.datebox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.datebox input{font-family:var(--ui);font-size:15px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.today{background:var(--mark);border:1px solid var(--mark-line);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:12px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+.msg{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div>
+      <h1>Practise for your German C-test</h1>
+      <p class="lead">Full onSET-style simulations with 8 texts, A2–B2 grammar and vocabulary, and a notebook of your own mistakes. Free, no sign-up, and your progress stays in your browser.</p>
+      <div class="cta"><a class="btn primary" href="test.html#F1">Start full simulation 1</a><a class="btn" href="test.html#O1">20-minute short test</a></div>
+    </div>
+    <div class="sample" aria-label="Example of a C-test">
+      Viele Menschen lernen Deutsch. Sie <span class="g">wol<i class="on">len</i></span> im Ausland <span class="g">stud<i>___</i></span> oder arbeiten. <span class="g">D<i>___</i></span> Grammatik ist <span class="g">ni<i>___</i></span> immer leicht.
+      <small>In a C-test the second half of every second word is missing. You type only the missing letters: <b>wol</b>len, <b>stud</b>ieren, <b>D</b>ie, <b>ni</b>cht.</small>
+    </div>
+  </section>
+
+  <section class="dash" aria-label="Your progress">
+    <div class="box c4" id="exam">
+      <h3>Your exam</h3>
+      <div id="countdown"></div>
+      <div class="datebox"><label for="examDate" class="muted" style="font-size:14px">Exam date</label><input type="date" id="examDate"><button class="btn" id="clearDate" type="button">Clear</button></div>
+      <div class="today" id="todayPlan"></div>
+    </div>
+    <div class="box c8 chart">
+      <h3>Test results</h3>
+      <div id="chart"></div>
+    </div>
+    <div class="box c4">
+      <h3>Overview</h3>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="box c4">
+      <h3>Where you lose points</h3>
+      <div id="cats"></div>
+    </div>
+    <div class="box c4">
+      <h3>Last tests</h3>
+      <div id="last"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Everything on this site</h2>
+    <div class="cards">
+      <a class="card" href="test.html"><b>Tests</b><span>4 full simulations (8 texts), 6 short tests, A2 exams, mixed-level exams and single texts.</span></a>
+      <a class="card" href="practice.html"><b>Practice</b><span>Exercises for the most common mistakes, with translations and rules, plus mini C-tests.</span></a>
+      <a class="card" href="grammar.html"><b>Grammar</b><span>24 A2, B1 and B2 topics with examples, translations and self-checks; 120 irregular verbs with a drill.</span></a>
+      <a class="card" href="vocab.html"><b>Vocabulary</b><span>593 core A2–B2 words with examples; C-test gaps, meanings, articles, flashcards and B1 / B2 level tests.</span></a>
+      <a class="card" href="mistakes.html"><b>My mistakes</b><span>Every gap you got wrong, in its sentence. Practise until each one is fixed.</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>How to prepare</h2>
+    <ol class="steps">
+      <li><b>Find your level</b><span>Do Full Simulation 1 without help. Your result shows which word types cost you points.</span></li>
+      <li><b>Repair the basics</b><span>Work on your weakest type on the Grammar and Practice pages.</span></li>
+      <li><b>Learn words daily</b><span>15 minutes of C-test gaps in the vocabulary trainer, then “my mistakes”.</span></li>
+      <li><b>Fix your mistakes</b><span>After every test, practise the wrong gaps on My mistakes.</span></li>
+      <li><b>Simulate the exam</b><span>One full simulation every second day. Easy gaps first, never leave a gap empty.</span></li>
+    </ol>
+  </section>
+
+  <section class="box" id="data">
+    <h3>Your data</h3>
+    <p style="margin:0 0 12px;max-width:65ch" class="muted">Your progress is stored only in this browser. To continue on another device, export it here and import the file there.</p>
+    <div class="confirm">
+      <button class="btn" id="export" type="button">Export progress</button>
+      <label class="btn" for="importFile" style="cursor:pointer">Import progress</label><input type="file" id="importFile" accept="application/json,.json" hidden>
+      <button class="btn" id="reset" type="button">Delete all progress</button>
+      <span id="resetConfirm" hidden>Really delete everything? <button class="btn" id="resetYes" type="button" style="border-color:var(--bad);color:var(--bad)">Yes, delete</button> <button class="btn" id="resetNo" type="button">Cancel</button></span>
+      <span class="msg" id="dataMsg"></span>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+"use strict";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const CATN = {fn:"Small words", det:"Articles & pronouns", verb:"Verbs & adjectives", noun:"Nouns"};
+const CATLINK = {fn:"vocab.html", det:"grammar.html#artikel", verb:"grammar.html#verbliste", noun:"grammar.html#nomen"};
+const attempts = CTT.list("attempts").filter(a=>a.max>0 && (a.texts||[]).length).sort((a,b)=>String(a.updated||a.at).localeCompare(String(b.updated||b.at)));
+const finished = attempts.filter(a=>a.status==="finished");
+
+/* exam date + countdown + today's suggestion */
+const dateIn = document.getElementById("examDate");
+dateIn.value = CTT.getExamDate();
+function renderExam(){
+  const dl = CTT.daysLeft();
+  document.getElementById("countdown").innerHTML = dl===null ? `<p class="muted" style="margin:0">Set your exam date to see a countdown and a daily suggestion.</p>`
+    : dl>0 ? `<span class="big">${dl}<small>${dl===1?"day":"days"} left</small></span>` : dl===0 ? `<span class="big" style="font-size:30px">Exam day · Viel Erfolg!</span>` : `<p class="muted" style="margin:0">That date has passed. Set your next exam date.</p>`;
+  let plan;
+  const last = finished[finished.length-1];
+  const studiedToday = !!CTT.store.days[CTT.today()];
+  if(dl===0) plan = "Today: no new material. Read the first and last sentence of each text, fill easy gaps first, never leave a gap empty.";
+  else if(dl===1) plan = "Tomorrow is the exam: only light review today (vocabulary flashcards, 1–2 short texts) and sleep early.";
+  else if(!finished.length) plan = `Today: do <a href="test.html#F1">Full Simulation 1</a> to find your level.`;
+  else {
+    const daysSince = last ? Math.round((new Date(CTT.today()) - new Date(String(last.updated||last.at).slice(0,10)))/864e5) : 9;
+    const weak = weakest();
+    if(daysSince>=2) plan = `Today: a full simulation. Next up: <a href="test.html#${nextSim()}">${nextSim().replace("F","Full Simulation ")}</a>.`;
+    else plan = `Today: fix your mistakes on <a href="mistakes.html">My mistakes</a>, then practise <a href="${CATLINK[weak]||"practice.html"}">${CATN[weak]||"your weakest area"}</a> and 15 minutes of <a href="vocab.html">vocabulary</a>.`;
+  }
+  document.getElementById("todayPlan").innerHTML = (studiedToday ? "✓ You practised today. " : "") + plan;
+}
+function nextSim(){ for(const s of ["F1","F2","F3","F4"]){ if(!finished.some(a=>(a.texts||[]).some(t=>String(t.id||"").startsWith(s.toLowerCase()+"-")))) return s; } return "F1"; }
+dateIn.addEventListener("change",()=>{ CTT.setExamDate(dateIn.value); renderExam(); });
+document.getElementById("clearDate").onclick = ()=>{ dateIn.value=""; CTT.setExamDate(""); renderExam(); };
+
+/* category totals over all saved tests */
+function catTotals(){ const t = {}; attempts.forEach(a=>Object.entries(a.cats||{}).forEach(([k,v])=>{ t[k]=t[k]||{ok:0,n:0}; t[k].ok+=v.ok; t[k].n+=v.n; })); return t; }
+function weakest(){ const t = catTotals(); const r = Object.entries(t).filter(([,v])=>v.n>0).sort((a,b)=>a[1].ok/a[1].n-b[1].ok/b[1].n); return r.length ? r[0][0] : null; }
+
+/* stats */
+function renderStats(){
+  const pcts = finished.map(a=>a.score/a.max*100);
+  const best = pcts.length ? Math.round(Math.max(...pcts)) : null;
+  const last3 = pcts.slice(-3); const avg = last3.length ? Math.round(last3.reduce((x,y)=>x+y,0)/last3.length) : null;
+  let vocabMiss = 0; try{ vocabMiss = ((JSON.parse(localStorage.getItem("vocab-a2b1-v1"))||{}).miss||[]).length; }catch(e){}
+  const open = new Set(); attempts.forEach(a=>(a.mistakes||[]).forEach(m=>{ const k=m.word+"|"+m.ctx; if(!(CTT.store.fixed||{})[k]) open.add(k); }));
+  document.getElementById("stats").innerHTML = [
+    [finished.length, "tests finished"], [best===null?"–":best+"%", "best result"], [avg===null?"–":avg+"%", "average of last 3"], [CTT.streak(), "day streak"], [open.size, `<a href="mistakes.html">gaps to fix</a>`], [vocabMiss, `<a href="vocab.html">words to repeat</a>`]
+  ].map(([n,l])=>`<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
+}
+
+/* chart: percentage per finished test, drawn to scale */
+function renderChart(){
+  const el = document.getElementById("chart");
+  const pts = finished.slice(-20);
+  if(pts.length<1){ el.innerHTML = `<p class="muted" style="margin:0">Your results appear here after your first test. <a href="test.html#F1">Start Full Simulation 1</a>.</p>`; return; }
+  const W = 640, H = 220, L = 40, R = 16, T = 14, B = 30;
+  const x = i => pts.length===1 ? (L+W-R)/2 : L + i*(W-L-R)/(pts.length-1);
+  const y = p => T + (100-p)*(H-T-B)/100;
+  const vals = pts.map(a=>a.score/a.max*100);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Test results in percent, oldest to newest">`;
+  [0,25,50,75,100].forEach(g=>{ s += `<line class="grid" x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}"/><text class="axis" x="${L-6}" y="${y(g)+3}" text-anchor="end">${g}%</text>`; });
+  const path = vals.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  if(vals.length>1) s += `<path class="area" d="${path} L${x(vals.length-1).toFixed(1)},${y(0)} L${x(0).toFixed(1)},${y(0)} Z"/><path class="line" d="${path}"/>`;
+  vals.forEach((v,i)=>{ s += `<circle class="${i===vals.length-1?"last":"dot"}" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${i===vals.length-1?5:3}"><title>${esc(pts[i].title)}: ${pts[i].score}/${pts[i].max}</title></circle>`; });
+  const lv = vals[vals.length-1], lx = x(vals.length-1);
+  s += `<text class="lbl" x="${Math.min(lx, W-R-4)}" y="${Math.max(y(lv)-10, 12)}" text-anchor="${lx>W-80?"end":"middle"}">${Math.round(lv)}%</text>`;
+  s += `<text class="axis" x="${L}" y="${H-8}">oldest</text><text class="axis" x="${W-R}" y="${H-8}" text-anchor="end">newest</text></svg>`;
+  el.innerHTML = s;
+}
+function renderCats(){
+  const t = catTotals(); const rows = Object.entries(t).filter(([,v])=>v.n>0).sort((a,b)=>a[1].ok/a[1].n-b[1].ok/b[1].n);
+  document.getElementById("cats").innerHTML = rows.length ? rows.map(([k,v],i)=>`<div class="catrow ${i===0?"weak":""}"><a href="${CATLINK[k]}">${CATN[k]}</a><span class="num" style="text-align:right">${Math.round(v.ok/v.n*100)}%</span><span class="bar"><i style="width:${v.ok/v.n*100}%"></i></span></div>`).join("") + `<p class="msg" style="margin:4px 0 0">Share of correct gaps per word type, over all your tests. Red = practise this first.</p>`
+    : `<p class="muted" style="margin:0">After your first test you'll see which word types cost you the most points.</p>`;
+}
+function renderLast(){
+  const rows = attempts.slice(-5).reverse();
+  document.getElementById("last").innerHTML = rows.length ? rows.map(a=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:14px"><span>${esc(a.title)}${a.status!=="finished"?' <span class="muted">(stopped)</span>':""}<br><span class="muted" style="font-size:12px">${esc(String(a.updated||a.at).slice(0,10))}</span></span><span class="num">${a.score}/${a.max}</span></div>`).join("")
+    : `<p class="muted" style="margin:0">No tests yet.</p>`;
+}
+
+/* data tools */
+const msg = document.getElementById("dataMsg");
+document.getElementById("export").onclick = ()=>{ CTT.exportData(); msg.textContent = "Exported. Keep the file to import it later."; };
+document.getElementById("importFile").onchange = e=>{ const f = e.target.files[0]; if(!f) return;
+  CTT.importData(f).then(()=>{ msg.textContent = "Imported. Reloading…"; setTimeout(()=>location.reload(), 600); }).catch(err=>{ msg.textContent = err.message || "Could not read this file."; }); };
+document.getElementById("reset").onclick = ()=>{ document.getElementById("resetConfirm").hidden = false; };
+document.getElementById("resetNo").onclick = ()=>{ document.getElementById("resetConfirm").hidden = true; };
+document.getElementById("resetYes").onclick = ()=>{ CTT.resetData(); msg.textContent = "All progress deleted. Reloading…"; setTimeout(()=>location.reload(), 600); };
+
+renderExam(); renderStats(); renderChart(); renderCats(); renderLast();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My mistakes · C-Test Trainer</title>
+<meta name="description" content="Your personal mistake notebook: every wrong C-test gap, grammar check and word in one place, with a practice mode.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css">
+<script src="assets/common.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: a notebook — summary tiles, filter row, then mistake cards; practice mode reuses the cards with inputs */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tile b{display:block;font-family:var(--mono);font-size:26px;font-weight:600;line-height:1.1}
+.tile span{font-size:13px;color:var(--muted)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters button.on{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+.list{display:flex;flex-direction:column;gap:8px}
+.mk{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--bad);border-radius:0 10px 10px 0;padding:10px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:start}
+.mk.done{border-left-color:var(--ok);opacity:.7}
+.mk .ctx{font-family:var(--text);font-size:17px;line-height:1.8}
+.mk .gap{font-family:var(--mono);font-size:15px;white-space:nowrap}
+.mk .gap .r{background:var(--ok-bg);color:var(--ok);padding:0 2px;border-radius:3px}
+.mk .gap .w{background:var(--bad-bg);color:var(--bad);text-decoration:line-through;padding:0 2px;border-radius:3px;margin-left:3px;font-size:13px}
+.mk .meta{font-size:12.5px;color:var(--muted);grid-column:1/-1}
+.mk .tag{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.mk input{font-family:var(--mono);font-size:15px;border:0;border-bottom:2px solid var(--mark-line);background:var(--mark);color:var(--ink);padding:1px 4px;border-radius:3px 3px 0 0}
+.mk input.ok{background:var(--ok-bg);border-color:var(--ok)}
+.mk input.bad{background:var(--bad-bg);border-color:var(--bad)}
+.mk .fix{font-family:var(--mono);font-size:13px;color:var(--ok);margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip2{font-family:var(--text);font-size:15px;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:2px 8px}
+.qrow{font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+.qrow b{font-family:var(--mono);font-size:13px}
+.empty{color:var(--muted)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main class="page">
+  <div>
+    <h1>My mistakes</h1>
+    <p class="lead">Every gap you got wrong in a test, in its sentence, plus the words and grammar checks you missed on the other pages. Practise them until they turn green: a mistake you answer correctly here is marked as fixed.</p>
+  </div>
+  <div class="tiles" id="tiles"></div>
+
+  <section>
+    <h2>Test gaps</h2>
+    <div class="filters" id="filters"></div>
+    <div class="bar" style="margin:12px 0">
+      <button class="btn primary" id="practice">Practise these</button>
+      <button class="btn" id="check" hidden>Check answers</button>
+      <label class="muted" style="font-size:14px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="showDone"> show fixed mistakes</label>
+      <span class="num" id="score"></span>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <section>
+    <h2>Verbs and nouns from the grammar drills</h2>
+    <div id="drills"></div>
+  </section>
+
+  <section>
+    <h2>Grammar checks</h2>
+    <div class="list" id="quiz"></div>
+  </section>
+</main>
+<script>
+(function(){
+"use strict";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => (s||"").normalize("NFC").trim().toLowerCase();
+const CATN = {fn:"Small words", det:"Articles & pronouns", verb:"Verbs & adjectives", noun:"Nouns"};
+CTT.store.fixed = CTT.store.fixed || {};
+
+/* collect test mistakes from all saved attempts (newest first), one entry per word+context */
+const attempts = CTT.list("attempts").sort((a,b)=>String(b.updated||b.at).localeCompare(String(a.updated||a.at)));
+const seen = new Set(), items = [];
+attempts.forEach(a=>(a.mistakes||[]).forEach(m=>{
+  const key = m.word+"|"+m.ctx; if(seen.has(key)) return; seen.add(key);
+  items.push(Object.assign({key, test:a.title, at:(a.updated||a.at||"").slice(0,10)}, m));
+}));
+let cat = "all", practising = false;
+
+function ctxHtml(m, mode){
+  const mm = (m.ctx||"").match(/^(.*)\[([^|]*)\|([^\]]*)\](.*)$/);
+  if(!mm) return esc(m.word);
+  const [, before, given, miss, after] = mm;
+  let gap;
+  if(mode==="practice") gap = `${esc(given)}<input data-key="${esc(m.key)}" data-ans="${esc(miss)}" maxlength="${given.length+1}" style="width:calc(${given.length+1}ch + 10px)" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Missing letters after ${esc(given)}">`;
+  else gap = `${esc(given)}<span class="r">${esc(miss)}</span>${m.answer ? `<span class="w">${esc(m.answer)}</span>` : `<span class="w">empty</span>`}`;
+  return `… ${esc(before)} <span class="gap">${gap}</span>${esc(after)} …`;
+}
+function visible(){
+  const showDone = document.getElementById("showDone").checked;
+  return items.filter(m=>(cat==="all"||m.cat===cat) && (showDone || !CTT.store.fixed[m.key]));
+}
+function render(){
+  const open = items.filter(m=>!CTT.store.fixed[m.key]);
+  const fixedN = items.length - open.length;
+  let verbs = [], arts = [];
+  try{ verbs = JSON.parse(localStorage.getItem("a2-verbs-wrong"))||[]; }catch(e){}
+  try{ arts = JSON.parse(localStorage.getItem("a2-art-wrong"))||[]; }catch(e){}
+  let vocabMiss = 0; try{ vocabMiss = ((JSON.parse(localStorage.getItem("vocab-a2b1-v1"))||{}).miss||[]).length; }catch(e){}
+  document.getElementById("tiles").innerHTML = [
+    [open.length, "test gaps to practise"], [fixedN, "test gaps fixed"], [vocabMiss, `words on your <a href="vocab.html">vocabulary</a> list`], [verbs.length + arts.length, "verbs & nouns from drills"]
+  ].map(([n,l])=>`<div class="tile"><b>${n}</b><span>${l}</span></div>`).join("");
+  const counts = {all: open.length}; open.forEach(m=>counts[m.cat]=(counts[m.cat]||0)+1);
+  document.getElementById("filters").innerHTML = ["all","fn","det","verb","noun"].map(c=>`<button class="btn ${c===cat?"on":""}" data-cat="${c}">${c==="all"?"All":CATN[c]} <span class="num">${counts[c]||0}</span></button>`).join("");
+  document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{ cat=b.dataset.cat; stopPractice(); render(); });
+  const vis = visible();
+  document.getElementById("list").innerHTML = vis.length ? vis.slice(0,200).map(m=>`<div class="mk ${CTT.store.fixed[m.key]?"done":""}"><div class="ctx">${ctxHtml(m, practising && !CTT.store.fixed[m.key] ? "practice" : "show")}<span class="fix"></span></div><span class="tag">${esc(CATN[m.cat]||"")}</span><div class="meta">${esc(m.word)} · ${esc(m.test||"")} · ${esc(m.at||"")}</div></div>`).join("")
+    : `<p class="empty">${items.length ? "Nothing open here. Well done! Tick “show fixed mistakes” to see them again." : `No test mistakes yet. Do a test on the <a href="test.html">Tests</a> page: every wrong gap will appear here.`}</p>`;
+  document.getElementById("practice").hidden = !vis.some(m=>!CTT.store.fixed[m.key]);
+  document.querySelectorAll("#list input").forEach((inp,i,all)=>{
+    inp.addEventListener("input",()=>{ const v = CTT.fixUmlauts(inp.value); if(v!==inp.value) inp.value = v; });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); (all[i+1]||document.getElementById("check")).focus(); } });
+  });
+  renderDrills(verbs, arts); renderQuiz();
+}
+function stopPractice(){ practising = false; document.getElementById("check").hidden = true; document.getElementById("practice").textContent = "Practise these"; document.getElementById("score").textContent = ""; }
+document.getElementById("practice").onclick = ()=>{
+  if(practising){ stopPractice(); render(); return; }
+  practising = true; render();
+  document.getElementById("check").hidden = false; document.getElementById("practice").textContent = "Stop practising";
+  const f = document.querySelector("#list input"); if(f) f.focus();
+};
+document.getElementById("check").onclick = ()=>{
+  let ok = 0, n = 0;
+  document.querySelectorAll("#list input").forEach(inp=>{
+    n++; const good = norm(inp.value)===norm(inp.dataset.ans);
+    inp.classList.toggle("ok",good); inp.classList.toggle("bad",!good);
+    inp.closest(".ctx").querySelector(".fix").textContent = good ? "✓ fixed" : "→ " + inp.dataset.ans;
+    if(good){ ok++; CTT.store.fixed[inp.dataset.key] = new Date().toISOString(); }
+  });
+  CTT.markActive(); CTT.save();
+  document.getElementById("score").textContent = `${ok}/${n} correct · correct ones are now marked as fixed`;
+};
+document.getElementById("showDone").onchange = ()=>{ stopPractice(); render(); };
+
+function renderDrills(verbs, arts){
+  const el = document.getElementById("drills");
+  if(!verbs.length && !arts.length){ el.innerHTML = `<p class="empty">Nothing here yet. Wrong answers from the <a href="grammar.html#verbliste">verb drill</a> and the <a href="grammar.html#artdrill">der/die/das drill</a> appear here.</p>`; return; }
+  el.innerHTML = (verbs.length ? `<p style="margin:0 0 6px">Verbs to repeat (<a href="grammar.html#verbliste">verb drill → “my mistakes”</a>):</p><div class="chips">${verbs.map(v=>`<span class="chip2">${esc(v)}</span>`).join("")}</div>` : "") +
+    (arts.length ? `<p style="margin:14px 0 6px">Nouns whose article you missed (<a href="grammar.html#artdrill">der/die/das drill → “my mistakes”</a>):</p><div class="chips">${arts.map(v=>`<span class="chip2">${esc(v)}</span>`).join("")}</div>` : "");
+}
+function renderQuiz(){
+  const rows = CTT.list("review").filter(r=>(r.wrong||[]).length);
+  const el = document.getElementById("quiz");
+  el.innerHTML = rows.length ? rows.map(r=>`<div class="qrow"><div><b>${esc(r.topic)}</b> · ${r.score}/${r.total} · <a href="grammar.html#${esc(r.id)}">redo this check</a></div>${r.wrong.map(w=>`<div style="margin-top:4px">${esc(w.q).replace("___", `<b>${esc(w.correct)}</b>`)} <span class="muted">(you: ${esc(w.answer||"empty")})</span></div>`).join("")}</div>`).join("")
+    : `<p class="empty">No grammar-check mistakes saved. Do the “Check yourself” parts on the <a href="grammar.html">Grammar</a> page.</p>`;
+}
+render();
+})();
+</script>
+</body>
+</html>

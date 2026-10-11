@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tests · C-Test Trainer</title>
+<meta name="description" content="Full C-test simulations in the onSET format: 8 texts, 20 gaps each, 5 minutes per text, with automatic marking and corrections.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css">
+<script src="assets/common.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: one exam-sheet column; ink-blue for actions, highlighter yellow for gaps, mono for letters */
+:root{
+  --paper:#f5f7fa; --card:#ffffff; --ink:#172130; --muted:#5a6575; --line:#d8dde5;
+  --accent:#2446c7; --accent-ink:#ffffff; --mark:#fff1a8; --mark-line:#e2c64a;
+  --ok:#1d7f47; --ok-bg:#e3f4ea; --bad:#b8322b; --bad-bg:#fbe7e5;
+  --ui:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f131a; --card:#161c26; --ink:#e5e9f0; --muted:#98a2b1; --line:#2a3240;
+  --accent:#8aa4ff; --accent-ink:#0f131a; --mark:#3a3417; --mark-line:#8a7a2c;
+  --ok:#5fcf8f; --ok-bg:#16301f; --bad:#ff8a80; --bad-bg:#3a1c1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f131a; --card:#161c26; --ink:#e5e9f0; --muted:#98a2b1; --line:#2a3240;
+  --accent:#8aa4ff; --accent-ink:#0f131a; --mark:#3a3417; --mark-line:#8a7a2c;
+  --ok:#5fcf8f; --ok-bg:#16301f; --bad:#ff8a80; --bad-bg:#3a1c1a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5}
+.wrap{max-width:780px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:28px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
+h1 small{font-weight:400;color:var(--muted);font-size:15px;letter-spacing:0;margin-left:6px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px;font-weight:600}
+h3{margin:0;font-size:18px;text-wrap:balance}
+.chip{font-family:var(--mono);font-size:13px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card);white-space:nowrap}
+.chip b{color:var(--accent)}
+.muted{color:var(--muted)}
+button{font-family:var(--ui);font-size:15px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.mode{text-align:left;padding:16px;display:flex;flex-direction:column;gap:6px;border-radius:10px}
+.mode strong{font-size:17px}
+.mode span{color:var(--muted);font-size:14px}
+.texts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.texts button{text-align:left;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 10px;font-size:14px}
+.lvl{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:4px;background:var(--paper);border:1px solid var(--line);color:var(--muted);flex:none}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label.toggle{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+/* plan */
+.plan{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+.plan li{display:grid;grid-template-columns:auto 76px 1fr;gap:12px;align-items:start;padding:10px 14px;border-top:1px solid var(--line)}
+.plan li:first-child{border-top:0}
+.plan li.today{background:var(--mark)}
+.plan .d{font-family:var(--mono);font-size:13px;padding-top:1px}
+.plan .t b{display:block}
+.plan .t span{color:var(--muted);font-size:14px}
+.plan li.done .t{opacity:.55;text-decoration:line-through}
+.plan input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+/* history */
+.hist{display:flex;flex-direction:column;gap:6px}
+.hrow{display:grid;grid-template-columns:96px 1fr 70px;gap:10px;align-items:center;font-size:14px}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+/* test */
+.testbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding-block:10px;border-bottom:1px solid var(--line)}
+.timer{font-family:var(--mono);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.timer.low{color:var(--bad)}
+.dots{display:flex;gap:4px}
+.dots i{width:22px;height:6px;border-radius:3px;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.dots i.cur{background:var(--ink)}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px clamp(16px,4vw,32px)}
+.sheet h3{font-family:var(--ui);margin-bottom:12px}
+.passage{font-family:var(--text);font-size:19px;line-height:2.15;margin:0;min-width:0}
+.gap{white-space:nowrap}
+.gap input{font-family:var(--mono);font-size:17px;border:0;border-bottom:2px solid var(--mark-line);background:var(--mark);color:var(--ink);padding:1px 3px;border-radius:3px 3px 0 0;margin-left:1px;vertical-align:baseline}
+.gap input:disabled{opacity:1}
+.given{font-family:var(--mono);font-size:17px}
+.keys{display:flex;gap:6px;flex-wrap:wrap}
+.keys button{font-family:var(--mono);font-size:17px;width:42px;padding:6px 0}
+.hint{font-size:13px;color:var(--muted)}
+/* results */
+.score{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:baseline}
+.big{font-family:var(--mono);font-size:52px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.cats{display:flex;flex-direction:column;gap:12px}
+.cat{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:4px 12px}
+.cat .bar{grid-column:1/-1;height:10px}
+.cat .bar i{background:var(--ok)}
+.cat.weak .bar i{background:var(--bad)}
+.cat small{grid-column:1/-1;color:var(--muted)}
+.mist{display:flex;flex-wrap:wrap;gap:8px}
+.m{font-family:var(--mono);font-size:14px;padding:4px 8px;border-radius:6px;background:var(--bad-bg);border:1px solid var(--line)}
+.m s{color:var(--bad)}
+.m b{color:var(--ok)}
+details{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:10px 14px}
+summary{cursor:pointer;font-weight:600}
+.solved{font-family:var(--text);font-size:17px;line-height:1.9;margin:10px 0 0}
+.solved .r{background:var(--ok-bg);color:var(--ok);font-family:var(--mono);font-size:15px;padding:0 2px;border-radius:3px}
+.solved .w{background:var(--bad-bg);color:var(--bad);font-family:var(--mono);font-size:15px;padding:0 2px;border-radius:3px}
+.tscores{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ts{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+.note{font-size:13px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+/* onSET-style screen: deliberately one light look, like the real test page */
+.os-wrap{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+.os-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.os-timer{font-family:var(--mono);font-size:13px}
+.os-timer.low{color:var(--bad);font-weight:600}
+.os-quit{font-size:12px;padding:2px 8px}
+.os-panel{background:#eef3f8;color:#333;border:1px solid #9fb3cc;padding:40px clamp(14px,3.5vw,28px) 28px;min-height:520px;font-family:Arial,Helvetica,sans-serif}
+.os-title{text-align:center;font-weight:700;font-size:19px;color:#000;margin-bottom:44px}
+.os-text{font-size:19px;line-height:1.75;margin:0;color:#444}
+.os-g{white-space:nowrap}
+.os-in{font-family:Arial,Helvetica,sans-serif;font-size:18px;width:6.6em;max-width:40vw;height:1.6em;border:1px solid #c9d3df;border-bottom:1.5px solid #555;background:#fff;color:#111;padding:0 4px;margin-left:1px;vertical-align:baseline;border-radius:0}
+.os-in:focus{outline:2px solid #5b84c4;outline-offset:0}
+.os-done{display:flex;align-items:center;gap:12px;margin:46px 0 0 clamp(0px,14%,140px);font-size:13px;font-weight:700;letter-spacing:.02em;color:#555;cursor:pointer}
+.os-done input{width:16px;height:16px}
+.os-count{margin-top:90px;font-size:18px;color:#111}
+.os-bar{background:#b4c8de;border:1px solid #9fb3cc;padding:9px 12px;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:17px;color:#111;min-height:42px}
+.os-bar button{background:#4f6f9c;color:#fff;border:1px solid #fff;border-radius:0;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;padding:1px 7px;margin-left:4px}
+.os-end{font-size:17px;color:#111}
+.os-end p{margin:0 0 22px}
+.os-pts{padding-left:40px;font-size:18px}
+.os-cmp{color:#555;font-size:15px}
+.os-endbtn{display:block;margin:60px auto 0;background:transparent;border:0;border-bottom:6px solid #b4c8de;color:#555;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:14px;letter-spacing:.03em;border-radius:0;padding:4px 10px}
+@media (max-width:520px){.passage{font-size:17px;line-height:2.1}.big{font-size:42px}.plan li{grid-template-columns:auto 60px 1fr;gap:8px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"></main>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- texts: first sentence | middle (gapped) | last sentence. "~" before a word = never gapped ---------- */
+const TEXTS = [
+ // Mock A
+ {id:"a1",set:"A",lvl:"A2",title:"Mein Wochenende",
+  first:"Am Wochenende habe ich endlich Zeit für meine Hobbys.",
+  mid:"Am Samstag stehe ich meistens spät auf und frühstücke in aller Ruhe. Danach gehe ich mit meiner Freundin in die Stadt. Wir kaufen auf dem Markt frisches Obst und Gemüse, weil es dort billiger ist als im Supermarkt. Am Nachmittag fahren wir oft mit dem Fahrrad an den See. Dort schwimmen wir, wenn das Wetter gut ist. Am Abend kochen wir zusammen und sehen einen Film.",
+  last:"Am Sonntag bleibe ich meistens zu Hause und lerne Deutsch."},
+ {id:"a2",set:"A",lvl:"A2",title:"Die neue Wohnung",
+  first:"Seit drei Wochen wohne ich in einer neuen Wohnung.",
+  mid:"Die Wohnung liegt im dritten Stock und hat zwei Zimmer, eine kleine Küche und einen Balkon. Leider gibt es keinen Aufzug, deshalb muss ich jeden Tag viele Treppen steigen. Die Miete ist nicht sehr hoch, aber im Winter sind die Heizkosten teuer. Meine Nachbarn sind sehr freundlich. Gestern hat mir die Frau von nebenan einen Kuchen gebracht. Am Wochenende möchte ich alle Nachbarn zu einer kleinen Party einladen.",
+  last:"Ich glaube, ich werde mich hier sehr wohl fühlen."},
+ {id:"a3",set:"A",lvl:"B1",title:"Studium im Ausland",
+  first:"Immer mehr junge Menschen entscheiden sich für ein Studium im Ausland.",
+  mid:"Sie wollen eine neue Sprache lernen, eine andere Kultur kennenlernen und ihre Chancen auf dem Arbeitsmarkt verbessern. Am Anfang ist das Leben in einem fremden Land aber oft nicht einfach. Viele Studierende haben Probleme mit der Bürokratie, zum Beispiel bei der Wohnungssuche oder bei der Eröffnung eines Bankkontos. Außerdem fühlen sich manche einsam, weil ihre Familie und ihre Freunde weit weg sind. Deshalb bieten viele Universitäten spezielle Programme für internationale Studierende an.",
+  last:"Dort bekommen die neuen Studierenden Hilfe und lernen schnell andere Leute kennen."},
+ {id:"a4",set:"A",lvl:"B1",title:"Gesund essen",
+  first:"Viele Menschen wissen, dass gesundes Essen wichtig ist.",
+  mid:"Trotzdem essen sie im Alltag oft ~Fast ~Food, weil sie wenig Zeit haben. Experten empfehlen, jeden Tag Obst und Gemüse zu essen und viel Wasser zu trinken. Auch das Frühstück spielt eine wichtige Rolle, denn es gibt dem Körper Energie für den ganzen Vormittag. Wer regelmäßig selbst kocht, weiß genau, was im Essen ist, und spart außerdem Geld. Man muss dafür kein Profi sein, denn viele einfache Rezepte findet man heute im Internet.",
+  last:"Schon kleine Veränderungen können einen großen Unterschied machen."},
+ {id:"a5",set:"A",lvl:"B1",title:"Ehrenamt",
+  first:"In Deutschland engagieren sich Millionen Menschen ehrenamtlich.",
+  mid:"Das bedeutet, dass sie in ihrer Freizeit für andere arbeiten, ohne dafür Geld zu bekommen. Manche helfen in Sportvereinen, andere besuchen alte Menschen oder unterstützen Kinder bei den Hausaufgaben. Für viele ist das Ehrenamt eine sinnvolle Aufgabe, die ihnen Freude macht. Gleichzeitig sammeln sie wichtige Erfahrungen, die ihnen später im Beruf helfen können. Besonders junge Leute lernen dabei, Verantwortung zu übernehmen und im Team zu arbeiten. Ohne die vielen Freiwilligen könnten zahlreiche Organisationen nicht existieren.",
+  last:"Deshalb wird ehrenamtliche Arbeit auch vom Staat gefördert."},
+ {id:"a6",set:"A",lvl:"B2",title:"Homeoffice",
+  first:"Seit der Pandemie arbeiten deutlich mehr Menschen von zu Hause aus.",
+  mid:"Viele Beschäftigte schätzen die Flexibilität, die das Homeoffice mit sich bringt. Sie sparen sich den täglichen Weg zur Arbeit und können Beruf und Familie besser miteinander verbinden. Allerdings hat diese Arbeitsform auch Nachteile. Wer allein zu Hause arbeitet, vermisst häufig den direkten Austausch mit den Kollegen. Zudem fällt es manchen schwer, nach Feierabend wirklich abzuschalten, weil Arbeitsplatz und Wohnraum nicht mehr klar getrennt sind. Inzwischen setzen viele Unternehmen deshalb auf ein hybrides Modell.",
+  last:"Dabei verbringen die Mitarbeitenden einige Tage im Büro und die übrigen Tage zu Hause."},
+ {id:"a7",set:"A",lvl:"B2",title:"Plastikmüll",
+  first:"Plastik ist aus unserem Alltag kaum noch wegzudenken.",
+  mid:"Es ist billig, leicht und vielseitig einsetzbar, doch genau das macht es zu einem großen Problem für die Umwelt. Jedes Jahr gelangen Millionen Tonnen Kunststoff in die Meere, wo sie Tiere gefährden und nur sehr langsam abgebaut werden. Winzige Plastikteilchen, sogenanntes Mikroplastik, wurden inzwischen sogar im Trinkwasser nachgewiesen. Die Europäische Union hat deshalb bestimmte Einwegprodukte wie Strohhalme und Plastikbesteck verboten. Experten betonen jedoch, dass Verbote allein nicht ausreichen.",
+  last:"Entscheidend sei vielmehr, dass jeder Einzelne sein Konsumverhalten überdenkt."},
+ {id:"a8",set:"A",lvl:"C1",title:"Künstliche Intelligenz",
+  first:"Kaum eine Technologie hat in den letzten Jahren so viel Aufmerksamkeit erhalten wie die künstliche Intelligenz.",
+  mid:"Ihre Befürworter sind überzeugt, dass sie die Produktivität erheblich steigern und neue wissenschaftliche Erkenntnisse ermöglichen wird. Kritiker hingegen warnen vor den Risiken, die mit dem zunehmenden Einsatz solcher Systeme verbunden sind. Insbesondere die Frage, wer für fehlerhafte Entscheidungen einer Maschine haftet, ist bislang weitgehend ungeklärt. Hinzu kommt die Sorge, dass zahlreiche Arbeitsplätze durch Automatisierung verloren gehen könnten. Ob diese Befürchtungen berechtigt sind, lässt sich gegenwärtig kaum abschließend beurteilen.",
+  last:"Fest steht jedoch, dass die Gesellschaft klare Regeln für den Umgang mit dieser Technologie braucht."},
+ // Mock B
+ {id:"b1",set:"B",lvl:"A2",title:"Einkaufen",
+  first:"Jeden Freitag gehe ich nach der Arbeit einkaufen.",
+  mid:"Zuerst schreibe ich eine Liste, damit ich nichts vergesse. Im Supermarkt kaufe ich Brot, Milch, Käse und Eier. Manchmal brauche ich auch Reis oder Nudeln. Das Obst kaufe ich lieber beim Bauern, weil es dort frischer ist. Meistens bezahle ich mit der Karte, aber auf dem Markt muss ich bar bezahlen. Nach dem Einkaufen bin ich oft müde und trinke zu Hause einen Tee.",
+  last:"Am Samstag habe ich dann frei."},
+ {id:"b2",set:"B",lvl:"A2",title:"Ein Tag an der Uni",
+  first:"Mein Tag an der Universität beginnt um acht Uhr.",
+  mid:"Zuerst habe ich eine Vorlesung in Mathematik, die leider sehr schwer ist. Danach treffe ich meine Freunde in der Mensa und wir essen zusammen zu Mittag. Das Essen dort ist nicht besonders gut, aber es ist billig. Am Nachmittag gehe ich in die Bibliothek, weil ich dort am besten lernen kann. Manchmal arbeiten wir auch in einer Gruppe an einem Projekt. Um sechs Uhr fahre ich mit dem Bus nach Hause.",
+  last:"Abends bin ich meistens sehr müde."},
+ {id:"b3",set:"B",lvl:"B1",title:"Der Weg zur Arbeit",
+  first:"Für viele Menschen beginnt der Arbeitstag mit einem langen Weg.",
+  mid:"Besonders in großen Städten sind die Straßen am Morgen oft voll, und man steht lange im Stau. Deshalb fahren immer mehr Leute mit öffentlichen Verkehrsmitteln oder mit dem Fahrrad. Das ist nicht nur gut für die Umwelt, sondern oft auch schneller. Wer mit dem Zug fährt, kann unterwegs lesen, Musik hören oder schon die ersten E-Mails beantworten. Allerdings sind Busse und Bahnen nicht immer pünktlich, was viele Fahrgäste ärgert.",
+  last:"Trotzdem möchten viele Pendler nicht mehr auf das Auto angewiesen sein."},
+ {id:"b4",set:"B",lvl:"B1",title:"Freundschaft",
+  first:"Gute Freunde sind für die meisten Menschen sehr wichtig.",
+  mid:"Mit ihnen kann man lachen, Probleme besprechen und schöne Erlebnisse teilen. Eine Umfrage hat gezeigt, dass die Deutschen im Durchschnitt etwa vier enge Freunde haben. Viele Freundschaften entstehen in der Schule oder während des Studiums. Später wird es oft schwieriger, neue Freunde zu finden, weil man weniger Zeit hat und mehr arbeiten muss. Wer umzieht, verliert manchmal den Kontakt zu alten Freunden. Heute helfen aber soziale Netzwerke dabei, in Verbindung zu bleiben.",
+  last:"Ein persönliches Treffen können sie jedoch nicht ersetzen."},
+ {id:"b5",set:"B",lvl:"B1",title:"Reisen mit dem Zug",
+  first:"Im Sommer verreisen viele Familien mit dem Zug statt mit dem Flugzeug.",
+  mid:"Eine Zugfahrt ist zwar oft länger, aber sie ist viel bequemer. Man kann während der Fahrt aufstehen, etwas essen oder aus dem Fenster schauen. Außerdem muss man nicht zwei Stunden vor der Abfahrt am Bahnhof sein, wie es am Flughafen üblich ist. Wer früh bucht, bekommt günstige Fahrkarten. Kinder unter sechs Jahren fahren in Deutschland sogar kostenlos. Ein weiterer Vorteil ist, dass Züge deutlich weniger klimaschädliche Gase produzieren als Flugzeuge.",
+  last:"Deshalb wird das Bahnfahren auch bei jungen Leuten immer beliebter."},
+ {id:"b6",set:"B",lvl:"B2",title:"Fachkräftemangel",
+  first:"In vielen Branchen fehlen in Deutschland qualifizierte Fachkräfte.",
+  mid:"Besonders betroffen sind die Pflege, das Handwerk und die Informationstechnik. Ein wichtiger Grund dafür ist der demografische Wandel, denn in den kommenden Jahren gehen zahlreiche Beschäftigte in Rente. Um die Lücke zu schließen, versucht die Bundesregierung, mehr ausländische Fachkräfte zu gewinnen. Mit einem neuen Gesetz wurden die Regeln für die Einwanderung vereinfacht. Dennoch berichten viele Bewerberinnen und Bewerber von langen Wartezeiten bei den Behörden. Auch die Anerkennung ausländischer Abschlüsse dauert häufig mehrere Monate.",
+  last:"Hier sehen Fachleute noch großen Verbesserungsbedarf."},
+ {id:"b7",set:"B",lvl:"B2",title:"Schlaf",
+  first:"Ausreichender Schlaf ist für unsere Gesundheit von zentraler Bedeutung.",
+  mid:"Während wir schlafen, verarbeitet das Gehirn die Eindrücke des Tages und speichert neue Informationen im Gedächtnis. Gleichzeitig erholt sich der Körper, und das Immunsystem wird gestärkt. Dennoch schlafen viele Erwachsene regelmäßig weniger als die empfohlenen sieben Stunden. Als Ursachen nennen Forscher vor allem Stress, unregelmäßige Arbeitszeiten und die Nutzung von Smartphones am späten Abend. Das blaue Licht der Bildschirme hemmt nämlich die Produktion des Schlafhormons ~Melatonin.",
+  last:"Wer besser schlafen möchte, sollte das Handy daher rechtzeitig zur Seite legen."},
+ {id:"b8",set:"B",lvl:"C1",title:"Mehrsprachigkeit",
+  first:"Lange Zeit glaubte man, dass eine zweisprachige Erziehung Kinder überfordere.",
+  mid:"Heute weiß man, dass genau das Gegenteil zutrifft. Zahlreiche Studien belegen, dass mehrsprachig aufwachsende Kinder nicht nur über einen größeren Wortschatz verfügen, sondern auch flexibler denken. Sie können sich besser konzentrieren und wechseln leichter zwischen verschiedenen Aufgaben. Voraussetzung ist allerdings, dass beide Sprachen im Alltag regelmäßig und in vielfältigen Situationen gebraucht werden. Problematisch wird es erst dann, wenn eine Sprache kaum gefördert und dadurch nach und nach verdrängt wird.",
+  last:"Eltern sollten deshalb bewusst darauf achten, beide Sprachen gleichermaßen zu pflegen."},
+ // Mock C
+ {id:"c1",set:"C",lvl:"A2",title:"Mein Hobby",
+  first:"Mein größtes Hobby ist Fußball.",
+  mid:"Ich spiele seit zehn Jahren in einem Verein und trainiere zweimal pro Woche. Unser Trainer ist sehr streng, aber er erklärt alles gut. Am Wochenende haben wir meistens ein Spiel gegen eine andere Mannschaft. Wenn wir gewinnen, gehen wir danach zusammen essen. Letzte Woche haben wir leider verloren, weil zwei Spieler krank waren. Trotzdem hatten wir viel Spaß.",
+  last:"Nächsten Samstag wollen wir unbedingt gewinnen."},
+ {id:"c2",set:"C",lvl:"A2",title:"Beim Arzt",
+  first:"Gestern war ich beim Arzt, weil ich Kopfschmerzen hatte.",
+  mid:"Im Wartezimmer saßen schon viele Leute, deshalb musste ich fast eine Stunde warten. Dann hat mich die Ärztin untersucht und viele Fragen gestellt. Sie hat gesagt, dass ich zu wenig schlafe und zu viel am Computer sitze. Ich soll mehr Wasser trinken und jeden Tag spazieren gehen. Außerdem hat sie mir ein Medikament gegen die Schmerzen gegeben. Ich muss es dreimal am Tag nehmen.",
+  last:"Heute geht es mir schon viel besser."},
+ {id:"c3",set:"C",lvl:"B1",title:"Wohnen in der WG",
+  first:"In vielen deutschen Städten ist es schwer, eine günstige Wohnung zu finden.",
+  mid:"Besonders Studierende haben oft große Probleme, weil sie nicht viel Geld haben. Auf eine freie Wohnung kommen manchmal mehr als hundert Bewerber. Deshalb wohnen viele junge Leute in einer Wohngemeinschaft. Dort hat jeder sein eigenes Zimmer, aber Küche und Bad teilt man mit den anderen. Das ist nicht nur billiger, sondern man ist auch nicht allein. Allerdings gibt es manchmal Streit, wenn jemand nicht putzt oder zu laut ist.",
+  last:"Klare Regeln helfen, solche Konflikte zu vermeiden."},
+ {id:"c4",set:"C",lvl:"B1",title:"Handys in der Schule",
+  first:"Ob Handys in der Schule erlaubt sein sollen, wird schon lange diskutiert.",
+  mid:"Viele Lehrer sind der Meinung, dass Smartphones die Schüler vom Lernen ablenken. In den Pausen spielen die Kinder oft nur noch am Handy, statt miteinander zu sprechen. Deshalb haben einige Schulen ein Verbot eingeführt. Andere Schulen sehen das anders und nutzen die Geräte sogar im Unterricht. Die Schüler können damit zum Beispiel Informationen suchen oder kleine Videos drehen. Wichtig ist dabei, dass sie lernen, verantwortungsvoll mit der Technik umzugehen.",
+  last:"Eine einfache Lösung für alle Schulen gibt es wohl nicht."},
+ {id:"c5",set:"C",lvl:"B1",title:"Die Bewerbung",
+  first:"Wer eine neue Stelle sucht, muss zuerst eine gute Bewerbung schreiben.",
+  mid:"Dazu gehören ein Anschreiben, ein Lebenslauf und die wichtigsten Zeugnisse. Im Anschreiben erklärt man, warum man sich für die Stelle interessiert und welche Erfahrungen man mitbringt. Es sollte nicht länger als eine Seite sein. Der Lebenslauf ist in Deutschland meistens tabellarisch und enthält oft auch ein Foto. Viele Firmen möchten die Unterlagen heute per E-Mail oder über ein Online-Portal bekommen. Nach einigen Wochen erhält man dann hoffentlich eine Einladung zum Vorstellungsgespräch.",
+  last:"Darauf sollte man sich gut vorbereiten."},
+ {id:"c6",set:"C",lvl:"B1",title:"Mit dem Rad unterwegs",
+  first:"Das Fahrrad ist in Deutschland ein sehr beliebtes Verkehrsmittel.",
+  mid:"In Städten wie ~Münster oder ~Freiburg fahren besonders viele Menschen täglich mit dem Rad zur Arbeit oder zur Uni. Radfahren ist gesund, kostet wenig und schützt die Umwelt. Außerdem findet man mit dem Fahrrad fast immer einen Parkplatz. Damit mehr Leute umsteigen, bauen viele Städte neue Radwege. Trotzdem fühlen sich manche Radfahrer im Straßenverkehr nicht sicher, weil die Autos zu schnell fahren. Ein Helm kann bei einem Unfall schwere Verletzungen verhindern.",
+  last:"Eine Helmpflicht gibt es in Deutschland aber nicht."},
+ {id:"c7",set:"C",lvl:"B2",title:"Lebensmittel im Müll",
+  first:"In Deutschland landen jedes Jahr Millionen Tonnen Lebensmittel im Müll.",
+  mid:"Ein großer Teil davon stammt aus privaten Haushalten. Häufig kaufen Verbraucher mehr ein, als sie tatsächlich brauchen, oder sie werfen Produkte weg, sobald das Mindesthaltbarkeitsdatum abgelaufen ist. Dabei sind viele Lebensmittel auch danach noch problemlos genießbar. Um dieses Problem zu bekämpfen, sind in den letzten Jahren zahlreiche Initiativen entstanden. Über spezielle Apps können Restaurants und Bäckereien übrig gebliebene Speisen am Abend günstig verkaufen. Andere Organisationen sammeln Lebensmittel und verteilen sie an Bedürftige.",
+  last:"So wird nicht nur Geld gespart, sondern auch die Umwelt geschont."},
+ {id:"c8",set:"C",lvl:"B2",title:"Kinder und Bildschirme",
+  first:"Kinder kommen heute immer früher mit digitalen Medien in Kontakt.",
+  mid:"Schon im Kindergartenalter nutzen viele regelmäßig Tablets oder Smartphones. Eltern stehen dadurch vor der schwierigen Frage, wie viel Bildschirmzeit angemessen ist. Fachleute empfehlen, die Nutzung nicht vollständig zu verbieten, sondern klare Grenzen zu setzen. Entscheidend sei außerdem, welche Inhalte die Kinder konsumieren. Lernspiele können durchaus sinnvoll sein, während ständiges Videoschauen eher schadet. Darüber hinaus sollten Eltern selbst ein gutes Vorbild sein und ihr eigenes Handy bewusst häufiger weglegen.",
+  last:"Gemeinsame Zeit ohne Bildschirm bleibt für die Entwicklung der Kinder unersetzlich."},
+ // Mock D
+ {id:"d1",set:"D",lvl:"A2",title:"Mein Zimmer",
+  first:"Mein Zimmer im Studentenwohnheim ist klein, aber gemütlich.",
+  mid:"Neben dem Fenster steht mein Schreibtisch, an dem ich jeden Abend lerne. Rechts von der Tür ist ein großer Schrank für meine Kleidung. Mein Bett ist leider ein bisschen zu kurz für mich. An der Wand hängen viele Fotos von meiner Familie und meinen Freunden. Die Küche und das Bad teile ich mit drei anderen Studenten. Wir verstehen uns sehr gut und kochen oft zusammen.",
+  last:"Ich fühle mich hier wirklich wohl."},
+ {id:"d2",set:"D",lvl:"A2",title:"Der Geburtstag",
+  first:"Letzten Samstag hatte meine Schwester Geburtstag.",
+  mid:"Sie ist zwanzig Jahre alt geworden und hat eine große Party gemacht. Am Nachmittag haben wir zusammen einen Kuchen gebacken und die Wohnung dekoriert. Um sieben Uhr sind die ersten Gäste gekommen. Alle haben Geschenke mitgebracht, und meine Schwester hat sich sehr gefreut. Wir haben gegessen, getanzt und bis Mitternacht gefeiert. Am nächsten Morgen mussten wir dann lange aufräumen.",
+  last:"Aber die Party war wirklich toll."},
+ {id:"d3",set:"D",lvl:"B1",title:"Deutsch lernen",
+  first:"Eine neue Sprache zu lernen, braucht viel Zeit und Geduld.",
+  mid:"Am Anfang macht es oft großen Spaß, weil man schnell Fortschritte sieht. Später wird es jedoch schwieriger, besonders bei der Grammatik. Viele Lernende haben Probleme mit den Artikeln, weil man sie nicht immer logisch erklären kann. Es hilft, jedes Nomen zusammen mit seinem Artikel zu lernen. Außerdem sollte man so oft wie möglich sprechen, auch wenn man noch Fehler macht. Wer Filme auf Deutsch sieht oder deutsche Musik hört, verbessert sein Hörverstehen fast automatisch.",
+  last:"Am wichtigsten ist es aber, jeden Tag ein bisschen zu üben."},
+ {id:"d4",set:"D",lvl:"B1",title:"Auf dem Wochenmarkt",
+  first:"Viele Menschen kaufen ihre Lebensmittel lieber auf dem Wochenmarkt als im Supermarkt.",
+  mid:"Dort kommen die Produkte meistens direkt von Bauern aus der Region. Obst und Gemüse sind deshalb oft frischer und schmecken besser. Außerdem kann man mit den Verkäufern sprechen und erfährt, wie die Lebensmittel hergestellt werden. Allerdings sind die Preise auf dem Markt häufig etwas höher. Der Supermarkt hat dagegen den Vorteil, dass er fast jeden Tag bis spät abends geöffnet ist. Wer wenig Zeit hat, geht deshalb meistens dorthin.",
+  last:"Am besten ist vielleicht eine Mischung aus beidem."},
+ {id:"d5",set:"D",lvl:"B1",title:"Das Praktikum",
+  first:"Viele Studierende machen während des Studiums ein Praktikum.",
+  mid:"So können sie das theoretische Wissen aus der Universität in der Praxis anwenden. Gleichzeitig lernen sie den Alltag in einem Unternehmen kennen und knüpfen erste Kontakte. Manche Praktikanten bekommen später sogar ein Angebot für eine feste Stelle. Leider werden Praktika nicht immer gut bezahlt, und manchmal müssen die jungen Leute nur einfache Aufgaben erledigen. Deshalb sollte man sich vorher genau informieren, was man in der Firma lernen kann.",
+  last:"Ein gutes Praktikum ist für den späteren Beruf sehr wertvoll."},
+ {id:"d6",set:"D",lvl:"B1",title:"Feste in Deutschland",
+  first:"In Deutschland gibt es das ganze Jahr über viele traditionelle Feste.",
+  mid:"Im Winter besuchen die Menschen gerne Weihnachtsmärkte, wo sie Glühwein trinken und kleine Geschenke kaufen. Im Februar feiern besonders die Leute im Rheinland den Karneval mit bunten Kostümen und großen Umzügen. Das bekannteste Fest ist aber wahrscheinlich das Oktoberfest in ~München. Jedes Jahr kommen Millionen Besucher aus der ganzen Welt, um dort Bier zu trinken und typisch bayerisches Essen zu probieren. Viele tragen dabei traditionelle Kleidung.",
+  last:"Für Touristen ist das Fest ein besonderes Erlebnis."},
+ {id:"d7",set:"D",lvl:"B2",title:"Massentourismus",
+  first:"Der Massentourismus stellt viele beliebte Reiseziele vor große Herausforderungen.",
+  mid:"In Städten wie ~Venedig oder ~Barcelona drängen sich in der Hochsaison täglich Zehntausende Besucher durch die engen Gassen. Für die Einheimischen wird das Leben dadurch zunehmend schwieriger, da die Mieten steigen und viele Wohnungen an Touristen vermietet werden. Einige Städte haben deshalb Maßnahmen ergriffen, um die Besucherströme zu begrenzen. So müssen Tagesgäste in ~Venedig inzwischen eine Eintrittsgebühr bezahlen. Kritiker bezweifeln allerdings, dass solche Regelungen das Problem tatsächlich lösen.",
+  last:"Langfristig sei ein nachhaltigerer Tourismus notwendig."},
+ {id:"d8",set:"D",lvl:"B2",title:"Arbeitsklima",
+  first:"Ein gutes Arbeitsklima ist für die Zufriedenheit der Beschäftigten entscheidend.",
+  mid:"Umfragen zeigen, dass viele Menschen ihren Job nicht wegen des Gehalts, sondern wegen schlechter Beziehungen zu Vorgesetzten kündigen. Mitarbeitende wünschen sich vor allem Anerkennung und ehrliche Rückmeldungen zu ihrer Arbeit. Führungskräfte sollten daher regelmäßig Gespräche führen und Kritik so formulieren, dass sie konstruktiv wirkt. Ebenso wichtig ist es, Konflikte frühzeitig anzusprechen, bevor sie eskalieren. Unternehmen, die in eine offene Kommunikationskultur investieren, profitieren langfristig von motivierten Teams.",
+  last:"Zudem sinkt in solchen Firmen die Zahl der Krankmeldungen deutlich."},
+ // full onSET simulations (8 texts)
+ {"id": "f1-1", "set": "F1", "lvl": "A2", "title": "Ein neues Hobby", "first": "Viele Menschen suchen ein Hobby, das ihnen Freude macht.", "mid": "Manche malen gern, andere spielen ein Instrument oder treiben Sport. Ein Hobby ist wichtig, weil man dabei den Stress der Woche vergessen kann. Außerdem lernt man oft neue Leute kennen, die dieselben Interessen haben. Wer noch kein Hobby hat, kann in einem Kurs verschiedene Dinge ausprobieren. Viele Volkshochschulen bieten günstige Kurse am Abend oder am Wochenende an. So findet jeder etwas, das zu ihm passt.", "last": "Wichtig ist nur, dass man Spaß dabei hat."},
+ {"id": "f1-2", "set": "F1", "lvl": "A2", "title": "Ein Tag ohne Auto", "first": "In einigen Städten gibt es einmal im Jahr einen autofreien Sonntag.", "mid": "An diesem Tag dürfen keine Autos durch die Innenstadt fahren. Die Straßen gehören dann den Fußgängern und Radfahrern. Viele Familien kommen mit ihren Kindern, um auf den leeren Straßen zu spielen. Es gibt Musik, Essen und viele Angebote zum Mitmachen. Die Menschen merken an diesem Tag, wie ruhig und sauber eine Stadt ohne Verkehr sein kann. Manche lassen danach ihr Auto öfter zu Hause.", "last": "Für die Umwelt ist das natürlich ein großer Gewinn."},
+ {"id": "f1-3", "set": "F1", "lvl": "B1", "title": "Das Studium finanzieren", "first": "Ein Studium kostet nicht nur Zeit, sondern auch viel Geld.", "mid": "Neben den Gebühren müssen Studierende Miete, Essen, Bücher und Fahrkarten bezahlen. Nicht alle Eltern können ihre Kinder dabei finanziell unterstützen. Deshalb gibt es verschiedene Möglichkeiten, sich das Studium zu finanzieren. Viele Studierende arbeiten neben den Vorlesungen, andere bewerben sich um ein Stipendium. Stipendien bekommt man meistens für gute Noten oder für ein besonderes soziales Engagement. Es lohnt sich also, sich früh über die verschiedenen Angebote zu informieren.", "last": "Oft ist die Konkurrenz allerdings groß."},
+ {"id": "f1-4", "set": "F1", "lvl": "B1", "title": "Falsche Nachrichten im Internet", "first": "Im Internet findet man zu fast jedem Thema schnell Informationen.", "mid": "Doch nicht alles, was dort steht, ist auch wahr. Immer wieder verbreiten sich falsche Nachrichten, die viele Menschen ohne Prüfung weiterleiten. Manche Nutzer glauben, dass eine Nachricht stimmt, nur weil sie oft geteilt wird. Experten raten deshalb, immer die Quelle zu prüfen und mehrere Seiten zu vergleichen. Auch bekannte Zeitungen und offizielle Stellen sind meistens zuverlässiger als unbekannte Webseiten. Wer unsicher ist, sollte eine Nachricht lieber nicht teilen.", "last": "So kann jeder helfen, die Verbreitung von Falschmeldungen zu stoppen."},
+ {"id": "f1-5", "set": "F1", "lvl": "B1", "title": "Pünktlichkeit", "first": "In vielen Ländern gilt Pünktlichkeit als wichtige Tugend.", "mid": "Wer zu einem Termin zu spät kommt, wirkt schnell unhöflich oder unzuverlässig. Besonders im Berufsleben wird erwartet, dass man rechtzeitig erscheint. Doch was genau pünktlich bedeutet, ist von Kultur zu Kultur verschieden. In manchen Ländern ist es normal, bei einer privaten Einladung etwas später zu kommen. In anderen dagegen erwartet der Gastgeber, dass alle genau zur verabredeten Zeit da sind. Wer im Ausland lebt, sollte sich deshalb über diese Regeln informieren.", "last": "So lassen sich peinliche Missverständnisse vermeiden."},
+ {"id": "f1-6", "set": "F1", "lvl": "B2", "title": "Die Vier-Tage-Woche", "first": "In mehreren europäischen Ländern wird derzeit über die Einführung einer Vier-Tage-Woche diskutiert.", "mid": "Befürworter argumentieren, dass Beschäftigte bei einem zusätzlichen freien Tag erholter und dadurch produktiver seien. Erste Pilotprojekte scheinen diese Annahme zu bestätigen: In vielen teilnehmenden Unternehmen blieb die Leistung stabil, während die Zahl der Krankheitstage sank. Kritiker geben jedoch zu bedenken, dass sich dieses Modell nicht für alle Branchen eignet. Insbesondere in der Pflege oder im Einzelhandel müsse der Betrieb an jedem Tag der Woche gewährleistet sein.", "last": "Ob sich die Vier-Tage-Woche flächendeckend durchsetzt, ist daher noch offen."},
+ {"id": "f1-7", "set": "F1", "lvl": "B2", "title": "Städte und Hitze", "first": "Durch den Klimawandel werden Hitzewellen auch in Mitteleuropa immer häufiger.", "mid": "Besonders in Großstädten steigen die Temperaturen im Sommer auf ein gefährliches Niveau, da Beton und Asphalt die Wärme speichern. Ältere Menschen und kleine Kinder leiden darunter am stärksten. Viele Stadtverwaltungen haben deshalb begonnen, ihre Städte gezielt anzupassen. Sie pflanzen zusätzliche Bäume, legen begrünte Dächer an und schaffen mehr Wasserflächen. Diese Maßnahmen kühlen die Umgebung spürbar ab und verbessern gleichzeitig die Luftqualität.", "last": "Experten fordern dennoch, dass solche Projekte deutlich schneller umgesetzt werden."},
+ {"id": "f1-8", "set": "F1", "lvl": "C1", "title": "Lob der Langeweile", "first": "Langeweile gilt gemeinhin als unangenehmer Zustand, den man möglichst schnell beenden möchte.", "mid": "Psychologen weisen jedoch darauf hin, dass gelegentliche Langeweile durchaus positive Wirkungen entfalten kann. Wenn das Gehirn nicht durch äußere Reize beschäftigt wird, beginnt es, eigene Gedanken zu entwickeln und ungewöhnliche Verbindungen herzustellen. Nicht wenige kreative Ideen entstehen gerade in solchen Momenten scheinbarer Untätigkeit. Problematisch ist allerdings, dass viele Menschen jede freie Minute mit ihrem Smartphone füllen und sich dadurch dieser Erfahrung berauben.", "last": "Es könnte sich daher lohnen, das Gerät bewusst häufiger beiseitezulegen."},
+ {"id": "f2-1", "set": "F2", "lvl": "A2", "title": "Picknick im Park", "first": "Wenn im Frühling die Sonne scheint, machen viele Menschen ein Picknick im Park.", "mid": "Sie nehmen eine Decke, belegte Brote, Obst und etwas zu trinken mit. Kinder spielen auf der Wiese, und die Eltern unterhalten sich oder lesen ein Buch. Manche bringen auch einen Ball oder ein Frisbee mit. Ein Picknick kostet nicht viel Geld und macht trotzdem großen Spaß. Wichtig ist nur, dass man den Müll am Ende wieder mitnimmt. Leider vergessen das einige Besucher.", "last": "Dann sieht der Park am Abend nicht mehr so schön aus."},
+ {"id": "f2-2", "set": "F2", "lvl": "A2", "title": "Der erste Arbeitstag", "first": "Der erste Tag in einer neuen Firma ist für viele Menschen aufregend.", "mid": "Man kennt die Kollegen noch nicht und weiß nicht genau, was einen erwartet. Deshalb ist es gut, am Abend vorher alles vorzubereiten. Man sollte sich über den Weg informieren, damit man pünktlich ankommt. Am ersten Tag stellt der Chef meistens die Kollegen vor und zeigt das Büro. Es ist ganz normal, dass man viele Fragen hat. Die meisten Kollegen helfen gern, wenn man freundlich fragt.", "last": "Nach ein paar Wochen fühlt man sich dann schon wie zu Hause."},
+ {"id": "f2-3", "set": "F2", "lvl": "B1", "title": "Gebrauchte Kleidung", "first": "Immer mehr junge Menschen kaufen ihre Kleidung gebraucht.", "mid": "In Second-Hand-Läden oder auf Internetportalen findet man oft schöne Sachen zu sehr günstigen Preisen. Viele Käufer achten aber nicht nur auf das Geld, sondern auch auf die Umwelt. Für die Herstellung neuer Kleidung braucht man nämlich große Mengen an Wasser und Energie. Wer gebrauchte Kleidung kauft, verlängert das Leben eines Kleidungsstücks und produziert weniger Müll. Außerdem ist es spannend, besondere Stücke zu finden, die nicht jeder trägt.", "last": "Mode und Umweltschutz schließen sich also nicht aus."},
+ {"id": "f2-4", "set": "F2", "lvl": "B1", "title": "Lernen mit Apps", "first": "Sprach-Apps sind heute auf vielen Smartphones zu finden.", "mid": "Mit ihnen kann man jeden Tag ein paar Minuten lernen, zum Beispiel im Bus oder in der Mittagspause. Die Übungen sind meistens kurz und machen Spaß, weil man Punkte sammeln kann. Viele Nutzer bleiben dadurch motivierter als mit einem dicken Lehrbuch. Allerdings reichen Apps allein oft nicht aus, um eine Sprache wirklich gut zu sprechen. Dafür braucht man auch Gespräche mit anderen Menschen und Erfahrungen im Alltag.", "last": "Am besten kombiniert man deshalb verschiedene Methoden."},
+ {"id": "f2-5", "set": "F2", "lvl": "B1", "title": "Ehrenamt im Sportverein", "first": "In Deutschland gibt es Tausende von Sportvereinen.", "mid": "Die meisten von ihnen funktionieren nur, weil sich viele Mitglieder ehrenamtlich engagieren. Sie trainieren Kinder, organisieren Turniere oder kümmern sich um die Finanzen, ohne dafür bezahlt zu werden. Für viele ist das Engagement eine sinnvolle Freizeitbeschäftigung, bei der sie neue Freunde finden. In den letzten Jahren wird es jedoch schwieriger, genug Freiwillige zu finden. Viele Menschen haben wegen Beruf und Familie einfach zu wenig Zeit.", "last": "Einige Vereine mussten deshalb schon Mannschaften abmelden."},
+ {"id": "f2-6", "set": "F2", "lvl": "B2", "title": "Lebensmittel aus der Region", "first": "Regionale Lebensmittel erfreuen sich bei Verbrauchern wachsender Beliebtheit.", "mid": "Viele Menschen sind bereit, für Obst und Gemüse aus ihrer Umgebung etwas mehr zu bezahlen. Sie gehen davon aus, dass diese Produkte frischer sind und durch die kurzen Transportwege das Klima weniger belasten. Allerdings ist die Rechnung nicht immer so einfach. Tomaten, die im Winter in beheizten Gewächshäusern wachsen, verbrauchen unter Umständen mehr Energie als importierte Ware aus südlichen Ländern. Entscheidend ist daher auch, ob ein Produkt gerade Saison hat.", "last": "Wer saisonal und regional einkauft, handelt am umweltfreundlichsten."},
+ {"id": "f2-7", "set": "F2", "lvl": "B2", "title": "Roboter in der Pflege", "first": "In vielen Industrieländern fehlen Pflegekräfte, während die Zahl älterer Menschen stetig wächst.", "mid": "Einige Fachleute sehen in Robotern eine mögliche Lösung für dieses Problem. Bereits heute werden in manchen Pflegeheimen Maschinen eingesetzt, die Essen verteilen oder Bewohnern beim Aufstehen helfen. Befürworter betonen, dass das Personal dadurch entlastet werde und mehr Zeit für persönliche Gespräche habe. Kritiker befürchten hingegen, dass der menschliche Kontakt zunehmend verloren gehen könnte. Gerade für einsame Menschen sei Zuwendung jedoch unverzichtbar.", "last": "Eine Maschine könne echte Menschlichkeit nicht ersetzen, so die Kritiker."},
+ {"id": "f2-8", "set": "F2", "lvl": "C1", "title": "Das Ende der Handschrift?", "first": "Seit Computer und Smartphones unseren Alltag bestimmen, greifen immer weniger Menschen zum Stift.", "mid": "Manche Bildungsexperten halten das Erlernen einer flüssigen Handschrift daher für überholt und plädieren dafür, den Unterricht stärker auf digitale Kompetenzen auszurichten. Neurowissenschaftliche Untersuchungen legen allerdings nahe, dass das Schreiben mit der Hand Prozesse im Gehirn anregt, die beim Tippen ausbleiben. Wer Notizen handschriftlich anfertigt, muss Inhalte zusammenfassen und verarbeitet sie dadurch gründlicher. Zudem scheint sich die Handschrift positiv auf das Erinnerungsvermögen auszuwirken.", "last": "Ein vollständiger Verzicht auf das Schreiben mit der Hand wäre demnach voreilig."},
+ {"id": "f3-1", "set": "F3", "lvl": "A2", "title": "Ein Tag am Strand", "first": "Im Sommer fahren viele Familien gern ans Meer.", "mid": "Am Strand können die Kinder im Sand spielen und im Wasser schwimmen. Die Eltern liegen in der Sonne oder lesen ein Buch. Mittags essen viele in einem kleinen Restaurant oder machen ein Picknick. Man sollte aber nicht vergessen, sich gut mit Sonnencreme zu schützen. Die Sonne am Meer ist nämlich oft stärker, als man denkt. Auch genug Wasser zu trinken ist an heißen Tagen sehr wichtig.", "last": "Dann wird der Tag am Strand für alle ein schönes Erlebnis."},
+ {"id": "f3-2", "set": "F3", "lvl": "A2", "title": "Neu in der Stadt", "first": "Wer in eine neue Stadt zieht, muss sich an vieles gewöhnen.", "mid": "Am Anfang kennt man niemanden und findet sich nicht gut zurecht. Es ist hilfreich, die Umgebung zu Fuß zu entdecken und die wichtigsten Orte zu suchen, zum Beispiel den Supermarkt, die Apotheke und die Haltestelle. Um neue Leute kennenzulernen, kann man in einen Verein gehen oder einen Kurs besuchen. Auch die Nachbarn freuen sich oft, wenn man sich kurz vorstellt.", "last": "Nach einiger Zeit fühlt sich die neue Stadt dann wie ein Zuhause an."},
+ {"id": "f3-3", "set": "F3", "lvl": "B1", "title": "Hausarbeit teilen", "first": "In vielen Familien ist die Hausarbeit noch immer ungleich verteilt.", "mid": "Obwohl heute meistens beide Partner berufstätig sind, übernehmen Frauen oft den größeren Teil der Arbeit im Haushalt. Sie kochen, waschen die Wäsche und kümmern sich um die Kinder. Das führt nicht selten zu Streit und Unzufriedenheit. Experten empfehlen deshalb, die Aufgaben klar zu verteilen und regelmäßig darüber zu sprechen. Auch Kinder können je nach Alter kleine Aufgaben übernehmen, zum Beispiel den Tisch decken oder ihr Zimmer aufräumen.", "last": "So lernen sie früh, Verantwortung zu übernehmen."},
+ {"id": "f3-4", "set": "F3", "lvl": "B1", "title": "Blut spenden", "first": "Jeden Tag werden in Krankenhäusern viele Blutkonserven gebraucht.", "mid": "Sie helfen zum Beispiel Menschen nach einem Unfall oder während einer schweren Operation. Da man Blut nicht künstlich herstellen kann, ist man auf freiwillige Spender angewiesen. Eine Blutspende dauert nur etwa eine Stunde und tut kaum weh. Vorher untersucht ein Arzt, ob der Spender gesund ist. Trotzdem spenden nur wenige Menschen regelmäßig Blut. Viele haben Angst vor der Nadel oder wissen einfach nicht, wie wichtig ihre Hilfe ist.", "last": "Dabei kann eine einzige Spende mehrere Leben retten."},
+ {"id": "f3-5", "set": "F3", "lvl": "B1", "title": "Mit dem Fernbus unterwegs", "first": "Seit einigen Jahren sind Fernbusse eine beliebte Alternative zur Bahn.", "mid": "Vor allem junge Leute und Studierende nutzen sie, weil die Tickets oft deutlich günstiger sind. Die Busse fahren zwischen vielen großen Städten und haben meistens kostenloses Internet an Bord. Allerdings dauert die Fahrt häufig länger als mit dem Zug, besonders wenn es auf der Autobahn Staus gibt. Wer bequem reisen möchte, sollte außerdem früh buchen, um einen guten Sitzplatz zu bekommen. Für längere Strecken nehmen manche auch einen Nachtbus.", "last": "So spart man sich sogar eine Nacht im Hotel."},
+ {"id": "f3-6", "set": "F3", "lvl": "B2", "title": "Teilen statt besitzen", "first": "Immer mehr Menschen leihen sich Dinge, statt sie selbst zu kaufen.", "mid": "In vielen Städten gibt es inzwischen Angebote, bei denen man Autos, Fahrräder oder sogar Werkzeuge für kurze Zeit mieten kann. Die Idee dahinter ist einfach: Viele Gegenstände werden nur selten benutzt, nehmen aber dauerhaft Platz weg und verursachen Kosten. Durch das gemeinsame Nutzen lassen sich Ressourcen sparen und die Umwelt entlasten. Kritiker wenden allerdings ein, dass Sharing-Angebote vor allem in Großstädten funktionieren, während sie auf dem Land kaum verfügbar sind.", "last": "Dort bleibt das eigene Auto daher meist unverzichtbar."},
+ {"id": "f3-7", "set": "F3", "lvl": "B2", "title": "Die Bedeutung von Pausen", "first": "Viele Beschäftigte arbeiten stundenlang ohne Unterbrechung, um möglichst viel zu erledigen.", "mid": "Arbeitspsychologen halten diese Strategie jedoch für wenig sinnvoll. Ihre Untersuchungen zeigen, dass die Konzentration bereits nach etwa neunzig Minuten deutlich nachlässt und die Fehlerquote steigt. Kurze, regelmäßige Pausen helfen dagegen, die Leistungsfähigkeit über den ganzen Tag zu erhalten. Besonders erholsam ist es, den Arbeitsplatz zu verlassen und sich ein wenig zu bewegen. Wer dagegen in der Pause Nachrichten liest oder am Handy surft, kann kaum abschalten.", "last": "Eine echte Pause bedeutet also, wirklich etwas anderes zu tun."},
+ {"id": "f3-8", "set": "F3", "lvl": "C1", "title": "Vertrauen in Bewertungen", "first": "Bevor sie ein Produkt kaufen oder ein Restaurant besuchen, lesen viele Menschen zunächst Bewertungen im Internet.", "mid": "Diese Rezensionen gelten als vermeintlich unabhängige Informationsquelle, die die Entscheidung erleichtern soll. Untersuchungen haben jedoch ergeben, dass ein beträchtlicher Anteil solcher Bewertungen gefälscht oder gekauft ist. Manche Unternehmen beauftragen sogar spezialisierte Agenturen, um ihre Produkte in ein besseres Licht zu rücken oder die Konkurrenz gezielt schlechtzumachen. Verbraucherschützer raten daher, nicht nur auf die durchschnittliche Punktzahl zu achten, sondern die Texte kritisch zu lesen und auf auffällige Wiederholungen zu achten.", "last": "Absolute Sicherheit bietet allerdings auch dieses Vorgehen nicht."},
+ {"id": "f4-1", "set": "F4", "lvl": "A2", "title": "Kochen mit Kindern", "first": "Viele Kinder helfen gern in der Küche.", "mid": "Sie waschen das Gemüse, rühren den Teig oder decken den Tisch. Dabei lernen sie, woher unser Essen kommt und wie man gesund kocht. Kinder, die selbst mitkochen, probieren außerdem lieber neue Gerichte. Natürlich müssen die Eltern gut aufpassen, denn Messer und heiße Töpfe können gefährlich sein. Am besten beginnt man mit einfachen Rezepten, zum Beispiel mit einem Obstsalat oder mit Pizza.", "last": "Am Ende sind die Kinder meistens sehr stolz auf ihr Essen."},
+ {"id": "f4-2", "set": "F4", "lvl": "A2", "title": "Ein Besuch im Museum", "first": "Am Sonntag besuchen viele Familien ein Museum.", "mid": "In großen Städten gibt es Museen für Kunst, Geschichte, Technik oder Natur. Für Kinder gibt es oft spezielle Führungen, bei denen sie Fragen stellen und selbst etwas ausprobieren dürfen. Manche Museen sind am ersten Sonntag im Monat kostenlos. Deshalb sind sie an diesem Tag oft sehr voll. Wer lieber in Ruhe schauen möchte, sollte an einem anderen Tag kommen. Nach dem Besuch kann man im Museumscafé eine Pause machen.", "last": "So wird der Ausflug für alle zu einem schönen Erlebnis."},
+ {"id": "f4-3", "set": "F4", "lvl": "B1", "title": "Ein Jahr für andere", "first": "Nach der Schule entscheiden sich viele junge Menschen für ein Freiwilliges Soziales Jahr.", "mid": "Sie arbeiten zum Beispiel in Krankenhäusern, Kindergärten oder Altenheimen und bekommen dafür ein kleines Taschengeld. Viele nutzen diese Zeit, um herauszufinden, welcher Beruf zu ihnen passt. Gleichzeitig sammeln sie wichtige Erfahrungen und werden selbstständiger. Manche gehen dafür sogar ins Ausland und lernen dort eine neue Sprache und Kultur kennen. Nach dem Jahr wissen die meisten genauer, was sie studieren oder lernen möchten.", "last": "Außerdem sieht ein solches Jahr im Lebenslauf sehr gut aus."},
+ {"id": "f4-4", "set": "F4", "lvl": "B1", "title": "Lärm in der Stadt", "first": "In Großstädten ist es selten wirklich ruhig.", "mid": "Autos, Baustellen, Flugzeuge und laute Nachbarn sorgen dafür, dass viele Menschen kaum Ruhe finden. Auf Dauer kann Lärm sogar krank machen, denn er führt zu Stress, Schlafproblemen und Kopfschmerzen. Viele Städte versuchen deshalb, die Lärmbelastung zu reduzieren. Sie bauen Lärmschutzwände an großen Straßen oder führen in Wohngebieten niedrigere Geschwindigkeiten ein. Auch jeder Einzelne kann etwas tun, zum Beispiel indem er abends die Musik leiser stellt.", "last": "Ein bisschen Rücksicht macht das Zusammenleben für alle angenehmer."},
+ {"id": "f4-5", "set": "F4", "lvl": "B1", "title": "Der erste Eindruck", "first": "Man sagt, dass es für den ersten Eindruck keine zweite Chance gibt.", "mid": "Besonders bei einem Vorstellungsgespräch spielt die Kleidung deshalb eine wichtige Rolle. Sie sollte sauber und ordentlich sein und zur Firma passen. In einer Bank trägt man zum Beispiel eher einen Anzug, während in einer jungen Werbeagentur auch Jeans akzeptiert werden. Wer unsicher ist, kann vorher auf der Internetseite der Firma nachsehen, wie sich die Mitarbeiter kleiden. Wichtiger als teure Marken ist es aber, sich wohlzufühlen.", "last": "Denn wer sich wohlfühlt, wirkt auch selbstbewusster."},
+ {"id": "f4-6", "set": "F4", "lvl": "B2", "title": "Bargeld oder Karte?", "first": "In vielen Ländern bezahlen die Menschen inzwischen fast nur noch mit Karte oder Smartphone.", "mid": "In Deutschland hingegen hängen viele Verbraucher nach wie vor am Bargeld. Sie schätzen es, dass sie damit einen besseren Überblick über ihre Ausgaben behalten und keine Datenspuren hinterlassen. Befürworter des digitalen Bezahlens verweisen dagegen auf die Bequemlichkeit und die höhere Hygiene. Zudem sparen Händler Zeit an der Kasse, weil das Zählen von Münzen entfällt. Gleichwohl warnen Fachleute davor, das Bargeld vollständig abzuschaffen, da ältere Menschen sonst benachteiligt würden.", "last": "Vermutlich werden beide Zahlungsformen daher noch lange nebeneinander bestehen."},
+ {"id": "f4-7", "set": "F4", "lvl": "B2", "title": "Wildtiere in der Stadt", "first": "Füchse, Wildschweine und Waschbären sind längst nicht mehr nur im Wald zu Hause.", "mid": "Immer häufiger dringen sie in Städte vor, wo sie in Parks, Gärten und auf Friedhöfen leben. Der Grund dafür liegt vor allem im reichen Nahrungsangebot, das sie in Mülltonnen und Komposthaufen vorfinden. Viele Stadtbewohner freuen sich über die tierischen Nachbarn, andere ärgern sich über zerwühlte Rasenflächen und umgeworfene Tonnen. Experten raten dringend davon ab, die Tiere zu füttern, da sie sonst ihre natürliche Scheu verlieren.", "last": "Ein friedliches Zusammenleben ist jedoch durchaus möglich."},
+ {"id": "f4-8", "set": "F4", "lvl": "C1", "title": "Die Macht der Gewohnheit", "first": "Ein großer Teil unseres täglichen Verhaltens beruht nicht auf bewussten Entscheidungen, sondern auf Gewohnheiten.", "mid": "Diese automatisierten Abläufe entlasten das Gehirn erheblich, da wir nicht jede Handlung neu durchdenken müssen. Problematisch wird es allerdings, wenn sich ungünstige Gewohnheiten verfestigt haben, die wir eigentlich ablegen möchten. Verhaltensforscher empfehlen, nicht allein auf Willenskraft zu setzen, sondern die Umgebung so zu gestalten, dass das gewünschte Verhalten leichter fällt. Wer beispielsweise mehr Obst essen möchte, sollte es gut sichtbar platzieren und Süßigkeiten außer Reichweite aufbewahren.", "last": "Kleine Veränderungen dieser Art erweisen sich auf Dauer oft als wirksamer als gute Vorsätze."},
+ // onSET-style tests
+ {"id": "o1-1", "set": "O1", "lvl": "B1", "title": "Die erste eigene Wohnung", "first": "Für viele junge Menschen ist der Auszug aus dem Elternhaus ein wichtiger Schritt.", "mid": "Die erste eigene Wohnung bedeutet Freiheit, bringt aber auch neue Pflichten mit sich. Plötzlich muss man selbst einkaufen, kochen, putzen und die Rechnungen bezahlen. Viele unterschätzen, wie hoch die monatlichen Kosten tatsächlich sind. Neben der Miete kommen nämlich noch Strom, Internet und Versicherungen dazu. Deshalb ist es sinnvoll, vor dem Umzug einen genauen Plan zu machen und regelmäßig etwas Geld zu sparen.", "last": "Wer gut vorbereitet ist, kann das neue Leben dann richtig genießen."},
+ {"id": "o1-2", "set": "O1", "lvl": "B1", "title": "Sport im Alltag", "first": "Regelmäßige Bewegung ist wichtig für Körper und Seele.", "mid": "Trotzdem treiben viele Menschen kaum Sport, weil sie glauben, keine Zeit dafür zu haben. Dabei braucht man kein teures Fitnessstudio, um aktiv zu bleiben. Schon kleine Veränderungen im Alltag können viel bewirken. Wer zum Beispiel mit dem Fahrrad zur Arbeit fährt oder die Treppe statt des Aufzugs nimmt, bewegt sich jeden Tag ein bisschen mehr. Auch ein kurzer Spaziergang in der Mittagspause hilft dabei, den Kopf frei zu bekommen.", "last": "Wichtig ist vor allem, dass man regelmäßig aktiv ist."},
+ {"id": "o1-3", "set": "O1", "lvl": "B1", "title": "Lesen in der Freizeit", "first": "Früher gehörte das Lesen von Büchern zu den beliebtesten Hobbys.", "mid": "Heute verbringen besonders junge Leute ihre Freizeit lieber mit dem Handy oder vor dem Computer. Viele Eltern und Lehrer machen sich deshalb Sorgen, dass Kinder immer weniger lesen. Dabei hat Lesen viele Vorteile: Es erweitert den Wortschatz, fördert die Fantasie und verbessert die Konzentration. Um Kinder für Bücher zu begeistern, sollten Eltern ihnen schon früh vorlesen. Auch Bibliotheken bieten oft spannende Angebote für junge Leser an.", "last": "So kann aus dem Lesen eine Gewohnheit für das ganze Leben werden."},
+ {"id": "o1-4", "set": "O1", "lvl": "B1", "title": "Tipps für die Bewerbung", "first": "Wer sich um eine neue Stelle bewirbt, möchte natürlich einen guten Eindruck machen.", "mid": "Das Anschreiben sollte deshalb kurz, klar und ohne Fehler sein. Es ist wichtig, genau zu erklären, warum man sich für diese Firma interessiert und welche Fähigkeiten man mitbringt. Viele Bewerber schicken jedoch an alle Unternehmen denselben Text. Personalchefs merken das sofort und legen solche Bewerbungen oft schnell zur Seite. Besser ist es, sich vorher gut über die Firma zu informieren und jede Bewerbung individuell zu schreiben.", "last": "Das kostet zwar mehr Zeit, erhöht aber die Chancen deutlich."},
+ {"id": "o2-1", "set": "O2", "lvl": "B1", "title": "Das Smartphone im Alltag", "first": "Für die meisten Menschen ist ein Leben ohne Smartphone kaum noch vorstellbar.", "mid": "Man benutzt es nicht nur zum Telefonieren, sondern auch zum Einkaufen, zum Bezahlen und um sich zu orientieren. Viele schauen schon direkt nach dem Aufstehen auf ihr Handy, um die neuesten Nachrichten zu lesen. Experten warnen allerdings davor, das Gerät zu oft zu benutzen. Wer ständig online ist, kann sich schlechter konzentrieren und schläft oft schlechter. Deshalb empfehlen sie, das Handy regelmäßig auszuschalten und bewusste Pausen zu machen.", "last": "Besonders am Abend sollte man auf den Bildschirm verzichten."},
+ {"id": "o2-2", "set": "O2", "lvl": "B1", "title": "Fremdsprachen lernen", "first": "Eine Fremdsprache zu lernen, öffnet viele Türen.", "mid": "Wer mehrere Sprachen spricht, hat bessere Chancen auf dem Arbeitsmarkt und kann auf Reisen leichter Kontakte knüpfen. Allerdings braucht man für das Lernen viel Geduld und Disziplin. Es reicht nicht, nur Vokabeln und Grammatikregeln auswendig zu lernen. Mindestens genauso wichtig ist es, die Sprache im Alltag zu benutzen. Man kann zum Beispiel Filme in der Originalsprache sehen, Bücher lesen oder sich mit Muttersprachlern unterhalten. Fehler sind dabei ganz normal und gehören zum Lernen dazu.", "last": "Wer regelmäßig übt, wird schon bald Fortschritte bemerken."},
+ {"id": "o2-3", "set": "O2", "lvl": "B1", "title": "Reisen mit kleinem Budget", "first": "Viele Studierende möchten gern die Welt sehen, haben aber nur wenig Geld.", "mid": "Trotzdem muss man auf das Reisen nicht verzichten. Wer früh bucht, bekommt oft günstige Flüge oder Zugtickets. Statt in teuren Hotels kann man in Jugendherbergen übernachten, wo man außerdem schnell andere junge Leute kennenlernt. Auch beim Essen lässt sich viel sparen, wenn man auf Märkten einkauft und selbst kocht. Manche Reisende arbeiten sogar während ihres Urlaubs, zum Beispiel auf einem Bauernhof, und bekommen dafür ein kostenloses Zimmer.", "last": "So wird eine Reise auch mit wenig Geld zu einem unvergesslichen Erlebnis."},
+ {"id": "o2-4", "set": "O2", "lvl": "B1", "title": "Teamarbeit im Studium", "first": "An vielen Universitäten müssen Studierende regelmäßig in Gruppen arbeiten.", "mid": "Die Professoren möchten damit erreichen, dass die Studierenden lernen, gemeinsam Probleme zu lösen. Gruppenarbeit hat viele Vorteile, denn jeder bringt eigene Ideen und Fähigkeiten mit. Allerdings kommt es auch häufig zu Konflikten, wenn einzelne Mitglieder sich nicht an Absprachen halten. Damit die Zusammenarbeit funktioniert, sollte man am Anfang klare Aufgaben verteilen und feste Termine vereinbaren. Außerdem ist es wichtig, offen über Probleme zu sprechen.", "last": "Dann kann am Ende ein Ergebnis entstehen, auf das alle stolz sind."},
+ {"id": "o3-1", "set": "O3", "lvl": "B1", "title": "Umweltschutz im Haushalt", "first": "Jeder Einzelne kann im Alltag etwas für die Umwelt tun.", "mid": "Schon beim Einkaufen kann man darauf achten, Produkte ohne viel Verpackung zu kaufen. Statt Plastiktüten sollte man eine eigene Tasche mitnehmen. Auch zu Hause gibt es viele Möglichkeiten, Energie zu sparen. Wer das Licht ausschaltet, wenn er einen Raum verlässt, und die Heizung nicht zu hoch dreht, spart nicht nur Strom, sondern auch Geld. Außerdem sollte man den Müll richtig trennen, damit möglichst viel recycelt werden kann.", "last": "Viele kleine Schritte zusammen haben eine große Wirkung."},
+ {"id": "o3-2", "set": "O3", "lvl": "B1", "title": "Freundschaften im Internet", "first": "Soziale Netzwerke haben die Art verändert, wie Menschen Freundschaften pflegen.", "mid": "Man kann heute ganz einfach mit Freunden in der ganzen Welt in Kontakt bleiben. Viele Menschen haben im Internet Hunderte von Kontakten, die sie aber kaum persönlich kennen. Psychologen weisen darauf hin, dass solche Verbindungen echte Freundschaften nicht ersetzen können. Für eine enge Freundschaft braucht man gemeinsame Erlebnisse und Vertrauen. Deshalb ist es wichtig, sich trotz der digitalen Möglichkeiten regelmäßig auch persönlich zu treffen.", "last": "Ein gemeinsamer Abend ist oft mehr wert als hundert Nachrichten."},
+ {"id": "o3-3", "set": "O3", "lvl": "B1", "title": "Stress vor Prüfungen", "first": "Kurz vor wichtigen Prüfungen fühlen sich viele Studierende stark unter Druck.", "mid": "Sie schlafen schlecht, essen unregelmäßig und können sich kaum noch konzentrieren. Ein Grund dafür ist oft, dass sie zu spät mit dem Lernen beginnen. Besser ist es, den Lernstoff schon Wochen vorher in kleine Teile aufzuteilen und einen festen Plan zu machen. Auch regelmäßige Pausen sind wichtig, denn das Gehirn braucht Zeit, um neue Informationen zu speichern. Wer sich außerdem genug bewegt, kann Stress leichter abbauen.", "last": "Am Tag vor der Prüfung sollte man sich dann vor allem gut ausruhen."},
+ {"id": "o3-4", "set": "O3", "lvl": "B1", "title": "Öffentliche Verkehrsmittel", "first": "In vielen Städten gibt es ein gut ausgebautes Netz von Bussen und Bahnen.", "mid": "Trotzdem fahren noch immer viele Menschen täglich mit dem eigenen Auto zur Arbeit. Sie schätzen die Freiheit und möchten nicht von Fahrplänen abhängig sein. Dabei haben öffentliche Verkehrsmittel viele Vorteile. Man muss keinen Parkplatz suchen, steht nicht im Stau und kann während der Fahrt lesen oder sich ausruhen. Außerdem sind sie deutlich umweltfreundlicher als Autos. Viele Städte versuchen deshalb, die Preise für Tickets zu senken.", "last": "So sollen mehr Menschen zum Umsteigen motiviert werden."},
+ {"id": "o4-1", "set": "O4", "lvl": "B1", "title": "Kochen statt Fast Food", "first": "Im stressigen Alltag greifen viele Menschen gern zu Fast Food.", "mid": "Es ist schnell, billig und schmeckt den meisten gut. Auf Dauer ist eine solche Ernährung jedoch nicht gesund, weil sie oft zu viel Fett, Salz und Zucker enthält. Wer selbst kocht, weiß dagegen genau, was auf dem Teller landet. Viele denken, dass Kochen viel Zeit kostet. Es gibt aber zahlreiche einfache Rezepte, die man in weniger als dreißig Minuten zubereiten kann. Außerdem macht gemeinsames Kochen mit Freunden oder der Familie viel Spaß.", "last": "Und am Ende spart man dabei sogar noch Geld."},
+ {"id": "o4-2", "set": "O4", "lvl": "B1", "title": "Hilfe in der Nachbarschaft", "first": "In vielen Stadtvierteln kennen sich die Nachbarn heute kaum noch.", "mid": "Früher war es selbstverständlich, sich gegenseitig zu helfen, zum Beispiel beim Einkaufen oder bei der Betreuung der Kinder. Heute leben viele Menschen allein und haben wenig Kontakt zu den Leuten im Haus. Besonders ältere Menschen fühlen sich dadurch oft einsam. Um das zu ändern, gründen manche Bewohner Nachbarschaftsvereine. Dort organisieren sie gemeinsame Feste, tauschen Werkzeuge oder helfen sich bei kleinen Reparaturen.", "last": "So entsteht wieder ein Gefühl von Gemeinschaft."},
+ {"id": "o4-3", "set": "O4", "lvl": "B1", "title": "Leben in der Großstadt", "first": "Immer mehr Menschen auf der Welt leben in großen Städten.", "mid": "Die Großstadt bietet viele Vorteile: Es gibt zahlreiche Arbeitsplätze, gute Schulen und ein großes kulturelles Angebot. Man kann ins Theater gehen, Museen besuchen oder in Restaurants aus aller Welt essen. Allerdings hat das Stadtleben auch Nachteile. Die Mieten sind oft sehr hoch, und auf den Straßen ist es laut und voll. Viele Bewohner wünschen sich deshalb mehr Parks und ruhige Orte, an denen sie sich erholen können.", "last": "Manche ziehen sogar irgendwann wieder aufs Land zurück."},
+ {"id": "o4-4", "set": "O4", "lvl": "B1", "title": "Musik beim Lernen", "first": "Viele Schüler und Studierende hören beim Lernen gern Musik.", "mid": "Sie sagen, dass sie sich damit besser konzentrieren können und weniger schnell müde werden. Wissenschaftler sind sich jedoch nicht einig, ob Musik beim Lernen wirklich hilft. Einige Studien zeigen, dass ruhige Musik ohne Text positiv wirken kann. Lieder mit Gesang dagegen lenken viele Menschen ab, besonders wenn sie Texte lesen oder schreiben müssen. Am besten probiert man selbst aus, unter welchen Bedingungen man am effektivsten arbeitet.", "last": "Denn jeder Mensch lernt auf seine eigene Weise."},
+ {"id": "o5-1", "set": "O5", "lvl": "B1", "title": "Nebenjobs für Studierende", "first": "Ein großer Teil der Studierenden arbeitet neben dem Studium.", "mid": "Viele brauchen das Geld, um ihre Miete und ihren Lebensunterhalt zu bezahlen. Andere möchten erste Berufserfahrungen sammeln, die ihnen später bei der Jobsuche helfen. Beliebt sind zum Beispiel Jobs in Cafés, in Geschäften oder als Nachhilfelehrer. Allerdings darf die Arbeit nicht zu viel Zeit kosten, denn sonst leidet das Studium darunter. Experten empfehlen deshalb, nicht mehr als zwanzig Stunden pro Woche zu arbeiten.", "last": "In den Semesterferien kann man dann mehr arbeiten."},
+ {"id": "o5-2", "set": "O5", "lvl": "B1", "title": "Haustiere in der Stadt", "first": "Auch in großen Städten leben viele Menschen mit Haustieren zusammen.", "mid": "Besonders Katzen sind beliebt, weil sie auch in einer kleinen Wohnung glücklich sein können. Hunde brauchen dagegen viel Bewegung und müssen mehrmals am Tag nach draußen. Wer in der Stadt einen Hund halten möchte, sollte deshalb genug Zeit haben und in der Nähe eines Parks wohnen. Außerdem muss man vorher klären, ob der Vermieter Tiere in der Wohnung erlaubt. Nicht jeder Mietvertrag lässt das nämlich zu.", "last": "Wer diese Punkte beachtet, wird viel Freude mit seinem Tier haben."},
+ {"id": "o5-3", "set": "O5", "lvl": "B1", "title": "Die Bedeutung des Frühstücks", "first": "Ernährungsexperten bezeichnen das Frühstück oft als wichtigste Mahlzeit des Tages.", "mid": "Nach der Nacht braucht der Körper neue Energie, um gut in den Tag zu starten. Trotzdem verzichten viele Menschen morgens auf ein Frühstück, weil sie keinen Hunger haben oder zu spät aufstehen. Die Folge ist, dass sie sich am Vormittag schlecht konzentrieren können und später oft zu viel essen. Ein gesundes Frühstück muss nicht kompliziert sein. Schon ein Müsli mit Obst oder ein Brot mit Käse reicht aus.", "last": "Dazu sollte man ausreichend Wasser oder Tee trinken."},
+ {"id": "o5-4", "set": "O5", "lvl": "B1", "title": "Unterricht im Internet", "first": "Seit einigen Jahren findet ein Teil des Unterrichts an Schulen und Universitäten online statt.", "mid": "Viele Studierende schätzen diese Form des Lernens, weil sie flexibler ist und man sich den Weg zur Uni spart. Man kann die Vorlesungen oft auch später noch einmal ansehen und in seinem eigenen Tempo lernen. Allerdings fehlt vielen der persönliche Kontakt zu Lehrenden und Kommilitonen. Außerdem fällt es manchen schwer, sich zu Hause zu motivieren, wenn niemand kontrolliert, ob sie wirklich arbeiten.", "last": "Eine Mischung aus beiden Formen scheint deshalb für viele ideal zu sein."},
+ {"id": "o6-1", "set": "O6", "lvl": "B1", "title": "Traditionen und Feste", "first": "In jedem Land gibt es besondere Feste, die man seit vielen Generationen feiert.", "mid": "Solche Traditionen verbinden die Menschen und geben ihnen ein Gefühl von Heimat. Oft trifft sich an diesen Tagen die ganze Familie, man kocht gemeinsam typische Gerichte und tauscht Geschenke aus. Wer im Ausland lebt, vermisst diese Feste häufig besonders stark. Viele internationale Studierende feiern deshalb mit Freunden aus ihrem Heimatland. Gleichzeitig lernen sie die Traditionen ihres neuen Landes kennen und entdecken dabei interessante Unterschiede.", "last": "So können Feste auch Brücken zwischen Kulturen bauen."},
+ {"id": "o6-2", "set": "O6", "lvl": "B1", "title": "Wasser sparen", "first": "Wasser ist eine der wichtigsten Ressourcen auf unserem Planeten.", "mid": "In vielen Ländern ist sauberes Trinkwasser selbstverständlich, doch in anderen Regionen ist es knapp und teuer. Auch wer genug Wasser hat, sollte sparsam damit umgehen. Man kann zum Beispiel kürzer duschen, statt ein Bad zu nehmen, und den Wasserhahn beim Zähneputzen zudrehen. Die Waschmaschine sollte man nur einschalten, wenn sie wirklich voll ist. Mit solchen einfachen Maßnahmen lässt sich der Verbrauch deutlich reduzieren.", "last": "Das ist gut für die Umwelt und für den eigenen Geldbeutel."},
+ {"id": "o6-3", "set": "O6", "lvl": "B1", "title": "Ältere Menschen und Technik", "first": "Die Digitalisierung verändert das Leben aller Generationen.", "mid": "Während junge Menschen mit Smartphones und Computern aufwachsen, haben ältere Menschen damit oft Schwierigkeiten. Viele wichtige Dinge wie Bankgeschäfte oder Arzttermine werden heute aber online erledigt. Wer sich mit der Technik nicht auskennt, fühlt sich deshalb schnell ausgeschlossen. Um zu helfen, bieten viele Städte spezielle Computerkurse für Senioren an. Oft erklären dort junge Freiwillige geduldig, wie man E-Mails schreibt oder im Internet sucht.", "last": "Beide Seiten können dabei viel voneinander lernen."},
+ {"id": "o6-4", "set": "O6", "lvl": "B1", "title": "Die Wahl des Studienfachs", "first": "Nach dem Schulabschluss stehen viele junge Menschen vor einer schwierigen Entscheidung.", "mid": "Sie müssen sich überlegen, welches Fach sie studieren möchten und an welcher Universität. Manche wählen ein Fach, weil es gute Berufschancen verspricht, andere folgen ihren persönlichen Interessen. Experten raten, beides zu berücksichtigen, denn ein Studium dauert mehrere Jahre und erfordert viel Motivation. Hilfreich ist es außerdem, Informationstage an Hochschulen zu besuchen und mit Studierenden zu sprechen, die das Fach bereits studieren.", "last": "So bekommt man einen realistischen Eindruck vom Studienalltag."},
+ // A2 exams
+ {"id": "e1-1", "set": "E1", "lvl": "A2", "title": "Meine Wohnung", "first": "Ich wohne seit einem Jahr in einer kleinen Wohnung.", "mid": "Sie hat zwei Zimmer, eine Küche und ein Bad. Im Wohnzimmer steht ein großes Sofa vor dem Fenster. Neben dem Sofa ist ein Tisch mit vier Stühlen. Mein Bett steht im Schlafzimmer an der Wand. Die Küche ist klein, aber sehr hell. Die Miete ist nicht billig, aber die Wohnung liegt direkt im Zentrum. Zur Uni brauche ich nur zehn Minuten.", "last": "Ich fühle mich hier sehr wohl."},
+ {"id": "e1-2", "set": "E1", "lvl": "A2", "title": "Einkaufen am Samstag", "first": "Am Samstag muss ich immer einkaufen gehen.", "mid": "Zuerst gehe ich in den Supermarkt, denn ich brauche Milch, Brot und Eier. Dann kaufe ich auf dem Markt frisches Obst und Gemüse. Danach gehe ich in ein Kleidungsgeschäft, weil ich eine neue Jacke suche. Die erste Jacke ist zu klein, die zweite ist zu teuer. Endlich finde ich eine schöne Jacke in meiner Größe. Sie kostet nur dreißig Euro.", "last": "Mit meinem Einkauf bin ich sehr zufrieden."},
+ {"id": "e1-3", "set": "E1", "lvl": "A2", "title": "Ich bin krank", "first": "Seit gestern bin ich leider krank.", "mid": "Ich habe Kopfschmerzen und Fieber, und mein Hals tut weh. Heute Morgen bin ich zum Arzt gegangen. Die Ärztin hat mich untersucht und gesagt, dass ich eine Erkältung habe. Ich soll drei Tage im Bett bleiben und viel Tee trinken. In der Apotheke habe ich ein Medikament gekauft. Meine Mitbewohnerin hat mir eine Suppe gekocht. Das war sehr nett von ihr.", "last": "Hoffentlich bin ich bald wieder gesund."},
+ {"id": "e1-4", "set": "E1", "lvl": "A2", "title": "Ein Ausflug in die Berge", "first": "Letzten Sonntag haben wir einen Ausflug in die Berge gemacht.", "mid": "Wir sind sehr früh aufgestanden und mit dem Zug gefahren. Das Wetter war schön, und die Sonne schien. Zuerst sind wir zwei Stunden gewandert. Auf dem Berg hatten wir einen wunderbaren Blick über das Tal. Dort haben wir gegessen und viele Fotos gemacht. Am Nachmittag wurde es plötzlich kalt, und es fing an zu regnen. Wir waren ganz nass, als wir zum Bahnhof kamen.", "last": "Trotzdem war es ein toller Tag."},
+ {"id": "e1-5", "set": "E1", "lvl": "A2", "title": "Mein bester Freund", "first": "Mein bester Freund heißt Aziz und kommt aus Taschkent.", "mid": "Er ist zwei Jahre älter als ich und ein bisschen größer. Er hat kurze schwarze Haare und braune Augen. Wir kennen uns schon seit der Schule. ~Aziz ist sehr lustig und hilft mir immer, wenn ich ein Problem habe. Er spielt gern Fußball und kocht sehr gut. Jetzt studiert er in Deutschland, deshalb sehen wir uns nur selten. Aber wir telefonieren jede Woche.", "last": "Im Sommer möchte ich ihn in Berlin besuchen."},
+ {"id": "e1-6", "set": "E1", "lvl": "A2", "title": "Das Wetter in Korea", "first": "Das Wetter in Korea ist ganz anders als in Usbekistan.", "mid": "Im Sommer ist es hier sehr heiß, und die Luft ist feucht. Im Juli{Juni} regnet es oft mehrere Tage lang. Der Herbst ist meine liebste Jahreszeit, weil es warm und trocken ist. Dann sind die Bäume rot und gelb. Der Winter ist kalt, aber es schneit nicht so viel wie in meiner Heimat. Wenn es sehr kalt ist, bleibe ich am liebsten zu Hause. Im Frühling blühen überall schöne Blumen.", "last": "Dann machen viele Leute Fotos im Park."},
+ {"id": "e1-7", "set": "E1", "lvl": "A2+", "title": "Mein Studium", "first": "Ich studiere Informatik an einer Universität in Korea.", "mid": "Das Studium ist interessant, aber auch ziemlich schwer. Jeden Tag habe ich drei oder vier Vorlesungen. Die meisten Kurse sind auf Koreanisch, deshalb muss ich viel lernen. Manchmal verstehe ich den Professor nicht, dann frage ich meine Kommilitonen. Sie erklären mir alles gern noch einmal. Am Ende des Semesters schreiben wir viele Prüfungen. Ich hoffe, dass ich alle Prüfungen bestehe.", "last": "Nach dem Studium möchte ich als Programmierer arbeiten."},
+ {"id": "e1-8", "set": "E1", "lvl": "A2+", "title": "Eine E-Mail an Daniel", "first": "Lieber Daniel, vielen Dank für deine lange E-Mail.", "mid": "Es freut mich sehr, dass es dir in ~München gut geht. Hier ist alles in Ordnung, aber ich habe gerade sehr viel zu tun. Nächsten Monat habe ich endlich Ferien. Ich würde dich gern besuchen, wenn du Zeit hast. Hättest du im August ein Zimmer für mich frei? Ich könnte mit dem Zug kommen und eine Woche bleiben. Bitte schreib mir bald, ob das möglich ist.", "last": "Viele Grüße und bis bald!"},
+ {"id": "e2-1", "set": "E2", "lvl": "A2", "title": "Ein Familienfest", "first": "Am Wochenende hatte meine Oma Geburtstag.", "mid": "Sie ist achtzig Jahre alt geworden, und die ganze Familie ist gekommen. Meine Tante hat einen großen Kuchen gebacken. Mein Onkel hat Fotos von allen Gästen gemacht. Die Kinder haben im Garten gespielt, und die Erwachsenen haben viel erzählt. Meine Oma hat viele Geschenke bekommen. Am meisten hat sie sich über ein Fotoalbum gefreut. Wir haben bis spät in die Nacht gefeiert.", "last": "Es war ein wunderschönes Fest."},
+ {"id": "e2-2", "set": "E2", "lvl": "A2", "title": "Mit dem Bus zur Arbeit", "first": "Meine Schwester arbeitet in einem Büro im Zentrum.", "mid": "Jeden Morgen nimmt sie um sieben Uhr den Bus. Die Fahrt dauert ungefähr eine halbe Stunde. Im Bus liest sie meistens ein Buch oder hört Musik. Manchmal schläft sie auch ein bisschen, weil sie so müde ist. An der Haltestelle vor ihrem Büro steigt sie aus. Wenn das Wetter gut ist, fährt sie lieber mit dem Fahrrad. Das ist billiger und gesünder.", "last": "Außerdem steht sie dann nicht im Stau."},
+ {"id": "e2-3", "set": "E2", "lvl": "A2", "title": "Im Café", "first": "Nach dem Unterricht gehe ich oft mit meiner Freundin ins Café.", "mid": "Das Café liegt direkt neben der Uni und ist sehr gemütlich. Meistens bestellt meine Freundin einen Cappuccino und ein Stück Kuchen. Ich trinke lieber Tee, weil ich keinen Kaffee mag. Die Kellnerin kennt uns schon und ist immer sehr freundlich. Wir sitzen gern am Fenster und sprechen über die Uni. Manchmal machen wir dort auch zusammen unsere Hausaufgaben.", "last": "Das Café ist unser Lieblingsort in der Stadt."},
+ {"id": "e2-4", "set": "E2", "lvl": "A2", "title": "Ein Kinoabend", "first": "Gestern Abend war ich mit meinen Freunden im Kino.", "mid": "Wir wollten einen neuen Film sehen, der gerade sehr bekannt ist. Leider waren fast alle Karten schon weg. Wir hatten aber Glück und bekamen noch vier{viele} Plätze in der letzten Reihe. Vor dem Film haben wir Popcorn und Cola gekauft. Der Film war sehr spannend, aber auch ein bisschen lang. Nach dem Kino sind wir noch in eine Bar gegangen und haben über den Film gesprochen.", "last": "Erst um Mitternacht bin ich nach Hause gekommen."},
+ {"id": "e2-5", "set": "E2", "lvl": "A2", "title": "Die neue Nachbarin", "first": "Seit einer Woche habe ich eine neue Nachbarin.", "mid": "Sie heißt ~Mina und kommt aus ~Seoul. Am ersten Tag habe ich ihr beim Tragen der Kisten geholfen. Dafür hat sie mir eine Flasche Wein geschenkt. ~Mina ist Krankenschwester und arbeitet oft in der Nacht. Deshalb schläft sie manchmal am Tag, und ich muss leise sein. Am Wochenende hat sie mich zum Essen eingeladen. Sie hat koreanisches Essen gekocht, und es hat mir sehr gut geschmeckt.", "last": "Ich glaube, wir werden gute Freundinnen."},
+ {"id": "e2-6", "set": "E2", "lvl": "A2", "title": "Mein Job im Café", "first": "Neben dem Studium arbeite ich in einem kleinen Café.", "mid": "Ich arbeite dort dreimal pro Woche, meistens am Abend. Um fünf Uhr fange ich an, und um zehn Uhr höre ich auf. Ich räume die Tische auf, bringe den Gästen das Essen und mache Kaffee. Die Arbeit ist manchmal anstrengend, aber meine Kollegen sind sehr nett. Mein Chef bezahlt pünktlich, und ich bekomme oft Trinkgeld. Mit dem Geld kann ich meine Miete bezahlen.", "last": "Nur am Wochenende habe ich frei."},
+ {"id": "e2-7", "set": "E2", "lvl": "A2+", "title": "Gesund leben", "first": "Viele Menschen möchten gesünder leben, aber sie wissen nicht genau, wie.", "mid": "Ärzte sagen, dass man jeden Tag Obst und Gemüse essen soll. Man sollte auch genug Wasser trinken und weniger Zucker essen. Sport{Spaß} ist ebenfalls sehr wichtig. Man muss nicht jeden Tag ins Fitnessstudio gehen. Schon ein Spaziergang von dreißig Minuten ist gut für den Körper. Außerdem soll man früh ins Bett gehen, denn Schlaf ist besser als jedes Medikament. Wer gestresst ist, wird schneller krank.", "last": "Gesund leben ist also gar nicht so schwer."},
+ {"id": "e2-8", "set": "E2", "lvl": "A2+", "title": "Reise nach Deutschland", "first": "Im nächsten Sommer will ich zum ersten Mal nach Deutschland reisen.", "mid": "Ich werde zuerst nach ~Berlin fliegen und dort drei Tage bleiben. Danach möchte ich mit dem Zug nach ~Hamburg fahren, weil ich das Meer sehen will. Zum Schluss besuche ich einen Freund, der in ~Köln studiert. Ich habe schon ein günstiges Hotel gefunden und die Flugtickets gekauft. Jetzt lerne ich jeden Tag Deutsch, damit ich mit den Leuten sprechen kann. Ich bin schon sehr gespannt.", "last": "Hoffentlich ist das Wetter dort gut."},
+ {"id": "e3-1", "set": "E3", "lvl": "A2", "title": "Kochen mit Freunden", "first": "Am Freitagabend haben wir zusammen gekocht.", "mid": "Jeder von uns hat etwas aus seinem Land mitgebracht. Mein Freund aus ~Vietnam hat eine Suppe mit Nudeln gemacht. Meine Freundin aus ~Indien hat Reis mit Gemüse gekocht. Ich habe ~Plov gemacht, das typische Essen aus ~Usbekistan. Danach haben wir alles auf einen großen Tisch gestellt und zusammen gegessen. Alle Gerichte haben sehr gut geschmeckt. Zum Schluss mussten wir viel abwaschen.", "last": "Nächsten Monat wollen wir wieder zusammen kochen."},
+ {"id": "e3-2", "set": "E3", "lvl": "A2", "title": "Ein normaler Tag", "first": "Von Montag bis Freitag sieht mein Tag fast immer gleich aus.", "mid": "Ich stehe um sieben Uhr auf und frühstücke schnell. Um acht Uhr fahre ich mit der U-Bahn zur Uni. Am Vormittag habe ich zwei Vorlesungen. Zu Mittag esse ich in der Mensa, weil das Essen dort billig ist. Am Nachmittag lerne ich in der Bibliothek oder treffe meine Lerngruppe. Am Abend koche ich etwas und rufe meine Eltern an. Um elf Uhr gehe ich ins Bett.", "last": "Am Wochenende schlafe ich dann lange."},
+ {"id": "e3-3", "set": "E3", "lvl": "A2", "title": "Die vergessene Tasche", "first": "Letzte Woche habe ich meine Tasche im Bus vergessen.", "mid": "In der Tasche waren mein Handy, mein Geldbeutel und mein Schlüssel. Ich habe es erst zu Hause bemerkt. Sofort bin ich zur Haltestelle zurückgelaufen, aber der Bus war natürlich schon weg. Dann habe ich bei der Busfirma angerufen. Eine freundliche Frau hat mir gesagt, dass jemand meine Tasche gefunden hat. Am nächsten Tag konnte ich sie im Büro abholen. Es fehlte nichts.", "last": "Ich hatte wirklich großes Glück."},
+ {"id": "e3-4", "set": "E3", "lvl": "A2", "title": "Hobbys in meiner Familie", "first": "Jeder Mensch braucht ein Hobby.", "mid": "Mein Bruder spielt gern Basketball, aber noch lieber spielt er Computerspiele. Meine Schwester malt sehr schön und geht oft ins Museum. Mein Vater angelt am Wochenende am See, weil er dort Ruhe hat. Meine Mutter liest am liebsten Romane. Ich mache gern Sport, besonders Schwimmen und Laufen. Außerdem lerne ich seit einem Jahr Gitarre. Das ist nicht leicht, aber es macht mir viel Spaß.", "last": "Vielleicht spiele ich bald in einer Band."},
+ {"id": "e3-5", "set": "E3", "lvl": "A2", "title": "Die Wohnungssuche", "first": "Mein Cousin sucht seit zwei Monaten eine Wohnung.", "mid": "Er möchte eine helle Wohnung mit einem Balkon und einer großen Küche. Sie sollte nicht weit von seiner Arbeit entfernt sein. Leider sind die meisten Wohnungen im Zentrum sehr teuer. Am Stadtrand sind die Mieten billiger, aber dann muss er jeden Tag lange fahren. Letzte Woche hat er eine schöne Wohnung gesehen, aber der Vermieter hat sie einer anderen Familie gegeben. Jetzt sucht er weiter im Internet.", "last": "Ich hoffe, er findet bald etwas."},
+ {"id": "e3-6", "set": "E3", "lvl": "A2", "title": "Im Supermarkt", "first": "Einkaufen in Korea war für mich am Anfang nicht einfach.", "mid": "Im Supermarkt konnte ich die meisten Schilder nicht lesen. Ich wusste oft nicht, was in den Packungen war. Einmal habe ich Salz statt Zucker gekauft, weil beide Packungen gleich aussahen. Obst ist hier viel teurer als in meiner Heimat. Dafür sind die Supermärkte sehr lange geöffnet, manche sogar die ganze Nacht. Inzwischen kenne ich die wichtigsten Wörter und finde alles schnell.", "last": "Heute gehe ich sogar gern einkaufen."},
+ {"id": "e3-7", "set": "E3", "lvl": "A2+", "title": "Mein erster Job", "first": "Als ich sechzehn war, hatte ich meinen ersten Job.", "mid": "Ich arbeitete in den Sommerferien in einem kleinen Hotel am Meer. Jeden Morgen musste ich um sechs Uhr aufstehen und das Frühstück vorbereiten. Danach putzte ich die Zimmer und wusch die Handtücher. Die Arbeit war hart, und ich durfte nur selten Pause machen. Aber die Gäste waren freundlich und gaben mir oft Trinkgeld. Am Ende des Sommers konnte ich mir von meinem Geld ein neues Fahrrad kaufen.", "last": "Darauf war ich sehr stolz."},
+ {"id": "e3-8", "set": "E3", "lvl": "A2+", "title": "Das Internet", "first": "Ohne Internet können sich viele junge Leute ihr Leben nicht mehr vorstellen.", "mid": "Sie benutzen ihr Handy, um Nachrichten zu schreiben, Musik zu hören oder Videos zu sehen. Auch für das Studium ist das Internet sehr wichtig, weil man dort viele Informationen findet. Allerdings sind nicht alle Informationen richtig. Man muss also genau prüfen, wer einen Text geschrieben hat. Viele Eltern sind unzufrieden, weil ihre Kinder zu viel Zeit am Bildschirm verbringen, obwohl sie draußen spielen könnten.", "last": "Wie immer ist das richtige Maß wichtig."},
+ {"id": "e4-1", "set": "E4", "lvl": "A2", "title": "Mein Lieblingsplatz", "first": "Mein Lieblingsplatz in der Stadt ist ein kleiner Park.", "mid": "Er liegt hinter dem Bahnhof, zwischen einer Schule und einem Krankenhaus. In der Mitte gibt es einen See mit vielen Enten. Um den See herum stehen alte Bäume und Bänke. Ich setze mich gern auf eine Bank unter einem Baum und lese ein Buch. Manchmal bringe ich auch Brot für die Enten mit. Am Wochenende spielen hier viele Kinder auf der Wiese.", "last": "Dort kann ich mich immer gut entspannen."},
+ {"id": "e4-2", "set": "E4", "lvl": "A2", "title": "Ein Geschenk für Papa", "first": "Nächste Woche hat mein Vater Geburtstag.", "mid": "Er wird fünfzig Jahre alt, deshalb wollen wir eine Party für ihn machen. Meine Mutter lädt alle seine Freunde und Kollegen ein. Mein Bruder und ich kaufen ihm zusammen ein Geschenk. Wir möchten ihm eine neue Uhr schenken, weil seine alte kaputt ist. Meine Schwester backt einen Kuchen mit Schokolade, denn das ist sein Lieblingskuchen. Die Party soll eine Überraschung sein.", "last": "Hoffentlich merkt er nichts."},
+ {"id": "e4-3", "set": "E4", "lvl": "A2", "title": "Im Hotel", "first": "Letzten Sommer habe ich mit meiner Familie Urlaub in einem Hotel gemacht.", "mid": "Leider gab es am ersten Tag ein Problem. Unser Zimmer war sehr klein, und die Dusche funktionierte nicht. Mein Vater ging zur Rezeption und fragte, ob wir ein anderes Zimmer bekommen könnten. Die Frau an der Rezeption war sehr freundlich. Sie gab uns ein größeres Zimmer mit einem Balkon und einem Blick auf das Meer. Außerdem bekamen wir ein kostenloses Abendessen.", "last": "Danach war der Urlaub perfekt."},
+ {"id": "e4-4", "set": "E4", "lvl": "A2", "title": "Mein Deutschkurs", "first": "Seit drei Monaten besuche ich einen Deutschkurs.", "mid": "Der Kurs findet zweimal pro Woche am Abend statt. In meiner Gruppe sind zwölf Leute aus acht Ländern. Unsere Lehrerin kommt aus ~Österreich und spricht sehr deutlich. Wir lernen viel Grammatik, aber wir sprechen auch viel miteinander. Am schwierigsten finde ich die Artikel, weil man sie nicht immer erklären kann. Zu Hause lerne ich jeden Tag neue Wörter mit einer App.", "last": "Im Oktober möchte ich eine Prüfung machen."},
+ {"id": "e4-5", "set": "E4", "lvl": "A2", "title": "Viel Schnee", "first": "Letzten Winter gab es in unserer Stadt sehr viel Schnee.", "mid": "In einer Nacht fiel so viel Schnee, dass am Morgen keine Busse fuhren. Viele Schulen blieben geschlossen, und die Kinder freuten sich sehr. Sie bauten im Park einen großen Schneemann und spielten den ganzen Tag draußen. Die Erwachsenen hatten weniger Spaß, weil sie zu Fuß zur Arbeit gehen mussten. Mein Nachbar fiel auf der Straße hin und brach sich den Arm.", "last": "Nach drei Tagen war der Schnee endlich weg."},
+ {"id": "e4-6", "set": "E4", "lvl": "A2", "title": "Mein neues Handy", "first": "Vor einem Monat habe ich mir ein neues Handy gekauft.", "mid": "Mein altes Handy war schon fünf Jahre alt und sehr langsam. Das neue Handy hat eine bessere Kamera und einen größeren Bildschirm. Leider war es auch ziemlich teuer. Ich benutze es jeden Tag zum Lernen, für Nachrichten und zum Fotografieren. Manchmal merke ich aber, dass ich zu viel Zeit damit verbringe. Deshalb lege ich es am Abend in ein anderes Zimmer, bevor ich schlafen gehe.", "last": "So schlafe ich viel besser."},
+ {"id": "e4-7", "set": "E4", "lvl": "A2+", "title": "Leben auf dem Land", "first": "Meine Großeltern wohnen in einem kleinen Dorf auf dem Land.", "mid": "Dort ist das Leben viel ruhiger als in der Stadt. Jeder kennt jeden, und die Nachbarn helfen sich gegenseitig. Meine Großeltern haben einen großen Garten, in dem sie Obst und Gemüse anbauen. Allerdings gibt es im Dorf keinen Supermarkt und keinen Arzt. Wenn sie einkaufen oder zum Arzt gehen wollen, müssen sie mit dem Bus in die nächste Stadt fahren. Obwohl das manchmal anstrengend ist, möchten sie nicht umziehen.", "last": "Sie sagen, dass sie auf dem Land glücklicher sind."},
+ {"id": "e4-8", "set": "E4", "lvl": "A2+", "title": "Studieren im Ausland", "first": "Ein Studium im Ausland ist eine große Chance, aber auch eine Herausforderung.", "mid": "Man lernt eine neue Sprache und eine andere Kultur kennen. Außerdem wird man selbstständiger, weil man viele Probleme allein lösen muss. Am Anfang vermissen viele Studierende ihre Familie und ihre Freunde. Manche fühlen sich einsam, besonders wenn sie die Sprache noch nicht gut sprechen. Deshalb ist es wichtig, schnell neue Kontakte zu finden, zum Beispiel in einem Sprachkurs oder in einem Verein.", "last": "Wer mutig ist, wird diese Zeit nie vergessen."},
+ // Mixed-level exams
+ {"id": "x1-1", "set": "X1", "lvl": "A2", "title": "Der erste Tag in Korea", "first": "Vor einem Jahr kam ich zum ersten Mal nach Korea.", "mid": "Ich war sehr nervös, weil ich niemanden kannte. Am Flughafen nahm ich einen Bus nach ~Jeonju. Die Fahrt dauerte fast vier Stunden. Im Wohnheim bekam ich ein kleines Zimmer im zweiten Stock. Meine Mitbewohnerin kam aus ~Vietnam und sprach sehr gut Englisch. Sie zeigte mir die Mensa und den Supermarkt. Am Abend gingen wir zusammen essen.", "last": "Da wusste ich, dass ich hier glücklich sein würde."},
+ {"id": "x1-2", "set": "X1", "lvl": "A2", "title": "Ein Brief an die Oma", "first": "Liebe Oma, ich schreibe dir aus Korea.", "mid": "Mir geht es gut, aber ich vermisse dich sehr. Jeden Morgen fahre ich mit dem Fahrrad zur Uni. Mein Kurs beginnt um neun Uhr und endet am Nachmittag. Mein Lehrer spricht sehr schnell, deshalb verstehe ich nicht immer alles. Am Wochenende lese ich viel oder treffe meine Freunde. Gestern haben wir zusammen einen Film gesehen. Nächsten Monat besucht mich mein Bruder.", "last": "Ich freue mich schon sehr auf ihn."},
+ {"id": "x1-3", "set": "X1", "lvl": "B1", "title": "Ein Unfall im Winter", "first": "Letzten Winter hatte mein Nachbar einen kleinen Unfall.", "mid": "Es war sehr kalt, und auf den Straßen lag viel Schnee. Er fuhr mit dem Auto zur Arbeit, obwohl der Wetterbericht vor Glatteis gewarnt hatte. An einer Kreuzung konnte er nicht mehr rechtzeitig bremsen und fuhr gegen einen Baum. Zum Glück trug er einen Sicherheitsgurt und wurde nur leicht verletzt. Ein Krankenwagen brachte ihn ins Krankenhaus, wo er zwei Tage bleiben musste.", "last": "Seitdem fährt er im Winter lieber mit dem Bus."},
+ {"id": "x1-4", "set": "X1", "lvl": "B1", "title": "Online einkaufen", "first": "Immer mehr Menschen kaufen ihre Kleidung im Internet.", "mid": "Das ist bequem, denn man muss nicht in die Stadt fahren und kann zu jeder Zeit bestellen. Außerdem findet man online oft günstigere Preise als im Geschäft. Ein Nachteil ist jedoch, dass man die Sachen vor dem Kauf nicht anprobieren kann. Deshalb schicken viele Kunden einen großen Teil ihrer Bestellungen wieder zurück. Das kostet nicht nur die Firmen viel Geld, sondern schadet auch der Umwelt.", "last": "Manche Händler verlangen deshalb inzwischen eine Gebühr für Rücksendungen."},
+ {"id": "x1-5", "set": "X1", "lvl": "B1", "title": "Mein Großvater", "first": "Mein Großvater wurde vor achtzig Jahren in einem kleinen Dorf geboren.", "mid": "Als Kind musste er seinen Eltern jeden Tag auf dem Feld helfen, deshalb konnte er nur wenige Jahre zur Schule gehen. Mit siebzehn verließ er sein Dorf und zog in die Hauptstadt. Dort fand er Arbeit in einer Fabrik und lernte meine Großmutter kennen. Obwohl sie wenig Geld hatten, waren sie sehr glücklich. Später eröffneten sie gemeinsam ein kleines Geschäft, das bald sehr erfolgreich wurde.", "last": "Heute erzählt er seinen Enkeln gern von dieser Zeit."},
+ {"id": "x1-6", "set": "X1", "lvl": "B2", "title": "Der Buchdruck", "first": "Um das Jahr 1450 entwickelte Johannes Gutenberg in Mainz ein neues Verfahren zum Drucken von Büchern.", "mid": "Bis dahin wurden Bücher meist von Mönchen per Hand abgeschrieben, was oft mehrere Jahre dauerte. ~Gutenbergs Erfindung ermöglichte es, Texte schnell und in großer Zahl zu vervielfältigen. Dadurch sanken die Preise für Bücher erheblich, und Wissen verbreitete sich in ganz ~Europa. Viele Historiker sind der Meinung, dass ohne den Buchdruck weder die Reformation noch die moderne Wissenschaft möglich gewesen wäre.", "last": "Gutenberg gilt daher bis heute als einer der wichtigsten Erfinder der Geschichte."},
+ {"id": "x1-7", "set": "X1", "lvl": "B2", "title": "Vom Land in die Stadt", "first": "Seit Jahrzehnten ziehen immer mehr Menschen vom Land in die Städte.", "mid": "Vor allem junge Leute verlassen ihre Heimatorte, weil sie dort weder Studienplätze noch attraktive Arbeitsstellen finden. In den Dörfern bleiben häufig nur ältere Menschen zurück, sodass Schulen, Geschäfte und Arztpraxen nach und nach schließen. Die Großstädte hingegen kämpfen mit steigenden Mieten und überfüllten Verkehrsmitteln. Inzwischen versuchen einige Gemeinden, mit schnellem Internet und günstigen Grundstücken neue Bewohner anzulocken. Tatsächlich entscheiden sich manche Familien bewusst für ein ruhigeres Leben auf dem Land.", "last": "Ob dieser Trend anhält, bleibt allerdings abzuwarten."},
+ {"id": "x1-8", "set": "X1", "lvl": "C1", "title": "Das Gedächtnis", "first": "Unser Gedächtnis funktioniert keineswegs wie eine Videokamera, die Ereignisse originalgetreu aufzeichnet.", "mid": "Vielmehr wird jede Erinnerung beim Abrufen neu konstruiert und dabei unbemerkt verändert. Psychologen konnten in zahlreichen Experimenten nachweisen, dass Menschen sich mit großer Überzeugung an Dinge erinnern, die nie stattgefunden haben. Solche falschen Erinnerungen entstehen beispielsweise durch suggestive Fragen oder durch Erzählungen anderer Personen. Diese Erkenntnisse haben weitreichende Folgen, insbesondere für Gerichtsverfahren, in denen Zeugenaussagen häufig eine entscheidende Rolle spielen.", "last": "Richter sind daher gut beraten, sich nicht ausschließlich auf die Aussagen von Augenzeugen zu verlassen."},
+ {"id": "x2-1", "set": "X2", "lvl": "A2", "title": "Mein Morgen", "first": "Mein Tag beginnt sehr früh.", "mid": "Um sechs Uhr klingelt mein Wecker, aber ich stehe meistens erst um halb sieben auf. Zuerst gehe ich ins Bad und dusche. Dann mache ich mir einen Kaffee und esse ein Brot mit Käse. Meine Mitbewohnerin schläft noch, deshalb bin ich ganz leise. Um halb acht verlasse ich das Haus und gehe zur Haltestelle. Der Bus kommt leider oft zu spät.", "last": "Trotzdem bin ich fast immer pünktlich im Unterricht."},
+ {"id": "x2-2", "set": "X2", "lvl": "A2", "title": "Im Restaurant", "first": "Am Freitag war ich mit meinen Eltern in einem neuen Restaurant.", "mid": "Wir hatten einen Tisch am Fenster reserviert. Der Kellner war sehr freundlich und brachte uns sofort die Speisekarte. Mein Vater nahm ein Steak mit Kartoffeln, meine Mutter bestellte einen Fisch. Ich aß eine Suppe und danach Nudeln mit Gemüse. Das Essen war sehr lecker, aber leider auch ziemlich teuer. Zum Schluss tranken wir noch einen Tee.", "last": "Wir wollen bald wieder dorthin gehen."},
+ {"id": "x2-3", "set": "X2", "lvl": "B1", "title": "Der verlorene Koffer", "first": "Als meine Freundin letzten Sommer nach Spanien flog, passierte etwas Unangenehmes.", "mid": "Nach der Landung wartete sie lange am Gepäckband, aber ihr Koffer kam nicht. Am Schalter der Fluggesellschaft erklärte man ihr, dass der Koffer wahrscheinlich in ein anderes Flugzeug geladen worden war. Sie musste ein Formular ausfüllen und bekam etwas Geld für die wichtigsten Sachen. Also kaufte sie sich eine Zahnbürste, ein T-Shirt und einen Badeanzug. Erst nach drei Tagen brachte ein Fahrer den Koffer endlich ins Hotel.", "last": "Seitdem packt sie immer ein paar Kleidungsstücke ins Handgepäck."},
+ {"id": "x2-4", "set": "X2", "lvl": "B1", "title": "Haustiere", "first": "In vielen deutschen Haushalten lebt mindestens ein Haustier.", "mid": "Am beliebtesten sind Katzen, gefolgt von Hunden und kleinen Tieren wie Kaninchen. Besonders für ältere oder allein lebende Menschen ist ein Tier ein wichtiger Begleiter. Wer einen Hund hat, geht mehrmals täglich spazieren und bleibt so in Bewegung. Allerdings sollte man sich vorher gut überlegen, ob man genug Zeit für ein Tier hat. Ein Hund kann nämlich nicht den ganzen Tag allein in der Wohnung bleiben, während sein Besitzer arbeitet.", "last": "Außerdem kosten Futter und Tierarzt jedes Jahr eine Menge Geld."},
+ {"id": "x2-5", "set": "X2", "lvl": "B1", "title": "Ein besonderer Lehrer", "first": "An meinen Mathematiklehrer erinnere ich mich noch heute sehr gern.", "mid": "Früher fand ich Mathe furchtbar langweilig und bekam fast immer schlechte Noten. Das änderte sich, als Herr ~Weber an unsere Schule kam. Er erklärte jede Aufgabe so lange, bis alle sie verstanden hatten. Wenn jemand einen Fehler machte, lachte er nie, sondern half ihm geduldig. Oft brachte er auch Spiele mit, die uns zeigten, wie nützlich Mathematik im Alltag ist. Am Ende des Jahres gehörte ich plötzlich zu den Besten der Klasse.", "last": "Ohne ihn hätte ich wohl nie Informatik studiert."},
+ {"id": "x2-6", "set": "X2", "lvl": "B2", "title": "Kaffee", "first": "Kaffee gehört zu den beliebtesten Getränken der Welt.", "mid": "Ursprünglich stammt die Pflanze aus ~Äthiopien, von wo aus sie sich über ~Arabien nach ~Europa verbreitete. Im siebzehnten Jahrhundert eröffneten in vielen europäischen Städten die ersten Kaffeehäuser, die sich schnell zu Treffpunkten für Künstler und Intellektuelle entwickelten. Heute trinken die Deutschen im Durchschnitt mehr Kaffee als Wasser oder Bier. Der Anbau findet jedoch fast ausschließlich in tropischen Ländern statt, wo die Bauern oft nur einen geringen Teil des Gewinns erhalten.", "last": "Fair gehandelter Kaffee soll dazu beitragen, ihre Lebensbedingungen zu verbessern."},
+ {"id": "x2-7", "set": "X2", "lvl": "B2", "title": "Zu viel Sitzen", "first": "Viele Menschen verbringen den größten Teil ihres Tages im Sitzen.", "mid": "Sie sitzen am Frühstückstisch, im Auto, im Büro und am Abend vor dem Fernseher. Mediziner warnen schon lange davor, dass dieser Bewegungsmangel ernsthafte gesundheitliche Folgen haben kann. Dazu zählen unter anderem Rückenschmerzen, Übergewicht und Herzkrankheiten. Die Weltgesundheitsorganisation empfiehlt Erwachsenen daher, sich mindestens zweieinhalb Stunden pro Woche mäßig intensiv zu bewegen. Schon kleine Veränderungen im Alltag können dabei helfen, etwa wenn man die Treppe statt des Aufzugs nimmt.", "last": "Wer zusätzlich regelmäßig Sport treibt, senkt sein Krankheitsrisiko deutlich."},
+ {"id": "x2-8", "set": "X2", "lvl": "C1", "title": "Wissenschaft erklären", "first": "Die Pandemie hat deutlich gemacht, wie wichtig eine verständliche Wissenschaftskommunikation ist.", "mid": "Forschungsergebnisse sind in der Regel vorläufig und werden im Lichte neuer Daten fortlaufend überprüft und gegebenenfalls korrigiert. Für die Öffentlichkeit ist dieser Prozess jedoch nicht immer nachvollziehbar, weshalb wechselnde Empfehlungen leicht als Widersprüche missverstanden werden. Hinzu kommt, dass sich Falschinformationen in sozialen Netzwerken oftmals schneller verbreiten als seriöse Erklärungen. Wissenschaftler stehen deshalb vor der Herausforderung, komplexe Zusammenhänge anschaulich darzustellen, ohne sie unzulässig zu vereinfachen.", "last": "Gelingt dies, kann das Vertrauen in die Forschung nachhaltig gestärkt werden."},
+ {"id": "x3-1", "set": "X3", "lvl": "A2", "title": "Ein Wochenende am Meer", "first": "Letzte Woche bin ich mit zwei Freunden nach Busan gefahren.", "mid": "Wir nahmen am Freitagmorgen den Zug und waren schon nach drei Stunden da. Unser Hotel lag direkt am Meer. Am ersten Tag gingen wir an den Strand und schwammen im Wasser. Abends aßen wir frischen Fisch auf dem Markt. Am Samstag besuchten wir einen alten Tempel in den Bergen. Leider regnete es am Sonntag den ganzen Tag.", "last": "Trotzdem war es ein wunderschönes Wochenende."},
+ {"id": "x3-2", "set": "X3", "lvl": "A2", "title": "Meine Familie", "first": "Meine Familie ist nicht sehr groß.", "mid": "Mein Vater arbeitet als Ingenieur bei einer großen Firma, und meine Mutter ist Lehrerin an einer Grundschule. Ich habe einen älteren Bruder und eine jüngere Schwester. Mein Bruder wohnt mit seiner Frau in der Hauptstadt und hat schon ein Kind. Meine Schwester geht noch zur Schule. Sie liest sehr gern und möchte später Ärztin werden. Am Wochenende telefoniere ich oft mit meinen Eltern.", "last": "Ich vermisse sie alle sehr."},
+ {"id": "x3-3", "set": "X3", "lvl": "B1", "title": "Der neue Job", "first": "Vor zwei Monaten hat mein Freund einen neuen Job angefangen.", "mid": "Er arbeitet jetzt bei einer kleinen Firma, die Apps für Smartphones entwickelt. Am Anfang war alles neu für ihn, und er musste viel lernen. Seine Kollegen halfen ihm aber sehr, deshalb fühlte er sich schnell wohl. Besonders gefällt ihm, dass er manchmal von zu Hause arbeiten darf. Das Gehalt ist zwar nicht so hoch wie in seiner alten Firma, aber dafür hat er weniger Stress. Außerdem kann er sich seine Arbeitszeit selbst einteilen.", "last": "Er ist sehr froh, dass er gewechselt hat."},
+ {"id": "x3-4", "set": "X3", "lvl": "B1", "title": "Mülltrennung", "first": "In Deutschland trennt man den Müll in verschiedene Tonnen.", "mid": "Papier kommt in die blaue Tonne, Verpackungen aus Plastik oder Metall gehören in die gelbe Tonne. Für Essensreste gibt es in vielen Städten eine braune Tonne. Glas bringt man zu großen Containern, die meistens an der Straße stehen. Für Ausländer ist dieses System am Anfang oft verwirrend. Wer den Müll falsch trennt, bekommt manchmal Ärger mit den Nachbarn. Das Ziel ist, möglichst viele Materialien zu recyceln und so Rohstoffe zu sparen.", "last": "Darauf sind viele Deutsche sehr stolz."},
+ {"id": "x3-5", "set": "X3", "lvl": "B1", "title": "Die erste Prüfung", "first": "Vor meiner ersten großen Prüfung an der Universität war ich sehr aufgeregt.", "mid": "Ich hatte wochenlang gelernt, aber in der Nacht davor konnte ich kaum schlafen. Am Morgen vergaß ich sogar mein Frühstück und kam nur knapp pünktlich an. Als ich die Aufgaben las, wurde ich aber ruhiger, denn die meisten Fragen kannte ich. Ich schrieb drei Stunden lang, ohne eine Pause zu machen. Zwei Wochen später bekam ich das Ergebnis per E-Mail. Ich hatte die Prüfung mit einer guten Note bestanden.", "last": "Danach habe ich mit meinen Freunden gefeiert."},
+ {"id": "x3-6", "set": "X3", "lvl": "B2", "title": "Bienen", "first": "Bienen spielen für die Landwirtschaft eine weitaus größere Rolle, als viele Menschen vermuten.", "mid": "Indem sie von Blüte zu Blüte fliegen, bestäuben sie zahlreiche Nutzpflanzen wie Äpfel, Kirschen oder Raps. Ohne ihre Arbeit würden die Erträge vieler Obstsorten drastisch sinken. In den vergangenen Jahren ist die Zahl der Bienen jedoch in vielen Regionen deutlich zurückgegangen. Als Ursachen gelten unter anderem der Einsatz von Pestiziden, der Verlust natürlicher Lebensräume sowie Krankheiten, die von Parasiten übertragen werden.", "last": "Auch Privatleute können helfen, etwa indem sie bienenfreundliche Blumen pflanzen."},
+ {"id": "x3-7", "set": "X3", "lvl": "B2", "title": "Studieren im Internet", "first": "Ein Studium ist längst nicht mehr an einen festen Ort gebunden.", "mid": "Immer mehr Hochschulen bieten Studiengänge an, die vollständig online absolviert werden können. Für Berufstätige oder Eltern mit kleinen Kindern ist das eine große Chance, da sie ihre Lernzeiten flexibel gestalten können. Allerdings erfordert ein Fernstudium ein hohes Maß an Selbstdisziplin. Ohne feste Termine und den direkten Kontakt zu Kommilitonen fällt es vielen schwer, motiviert zu bleiben. Studien zeigen, dass die Abbruchquote bei Fernstudiengängen deutlich höher liegt als bei klassischen Präsenzstudiengängen.", "last": "Regelmäßige virtuelle Treffen können hier Abhilfe schaffen."},
+ {"id": "x3-8", "set": "X3", "lvl": "C1", "title": "Sprache und Denken", "first": "Ob die Sprache, die wir sprechen, unser Denken beeinflusst, beschäftigt Wissenschaftler seit langem.", "mid": "Lange galt die These, dass Sprecher verschiedener Sprachen die Welt grundlegend unterschiedlich wahrnehmen, als widerlegt. Neuere Untersuchungen deuten allerdings darauf hin, dass sprachliche Strukturen zumindest bestimmte kognitive Prozesse prägen können. So orientieren sich Angehörige mancher Völker, deren Sprachen keine Wörter für links und rechts besitzen, ausschließlich an Himmelsrichtungen. Dadurch verfügen sie über einen erstaunlich präzisen Orientierungssinn, selbst in völlig unbekannter Umgebung.", "last": "Von einer völligen Abhängigkeit des Denkens von der Sprache kann gleichwohl keine Rede sein."},
+ {"id": "x4-1", "set": "X4", "lvl": "A2", "title": "Ein Tag im Park", "first": "Gestern war das Wetter endlich wieder schön.", "mid": "Deshalb fuhr ich nach dem Unterricht mit meiner Freundin in den Park. Wir setzten uns auf eine Bank unter einem großen Baum. Sie las ein Buch, und ich hörte Musik. Später kauften wir uns ein Eis und gingen am See spazieren. Dort sahen wir viele Familien mit kleinen Kindern. Um sieben Uhr wurde es kalt, und wir fuhren nach Hause.", "last": "Es war ein sehr schöner Nachmittag."},
+ {"id": "x4-2", "set": "X4", "lvl": "A2", "title": "Mein Lieblingsessen", "first": "Mein Lieblingsessen ist Plov, ein traditionelles Gericht aus Usbekistan.", "mid": "Man kocht es mit Reis, Fleisch, Karotten und Zwiebeln in einem großen Topf. Meine Mutter macht den besten ~Plov der Welt. Jeden Freitag kocht sie ihn für die ganze Familie. Als ich klein war, durfte ich ihr manchmal helfen. In ~Korea gibt es leider kein Restaurant, das ~Plov anbietet. Deshalb koche ich ihn jetzt selbst, aber er schmeckt nicht so gut wie zu Hause.", "last": "Ich muss meine Mutter unbedingt nach dem Rezept fragen."},
+ {"id": "x4-3", "set": "X4", "lvl": "B1", "title": "Der Umzug", "first": "Im letzten Monat bin ich in eine neue Wohnung umgezogen.", "mid": "Weil ich kein Geld für eine Umzugsfirma hatte, fragte ich meine Freunde, ob sie mir helfen könnten. Am Samstagmorgen kamen fünf Leute und trugen meine Möbel die Treppen hinunter. Leider passte mein großer Schrank nicht in das kleine Auto, deshalb mussten wir einen Transporter mieten. Nach sechs Stunden standen endlich alle Kartons in der neuen Wohnung. Als Dank lud ich alle zum Essen ein.", "last": "Jetzt muss ich nur noch alles auspacken."},
+ {"id": "x4-4", "set": "X4", "lvl": "B1", "title": "Das Sprachtandem", "first": "Eine gute Methode, um eine Fremdsprache zu üben, ist ein Sprachtandem.", "mid": "Dabei treffen sich zwei Personen mit unterschiedlichen Muttersprachen, die jeweils die Sprache des anderen lernen möchten. Eine Stunde spricht man zum Beispiel Deutsch, die nächste Stunde Koreanisch. So kann jeder von dem anderen lernen, ohne für Unterricht bezahlen zu müssen. Außerdem lernt man nicht nur Wörter und Grammatik, sondern auch viel über die Kultur des anderen Landes. Viele Universitäten helfen ihren Studierenden dabei, einen passenden Partner zu finden.", "last": "Manchmal entstehen daraus sogar echte Freundschaften."},
+ {"id": "x4-5", "set": "X4", "lvl": "B1", "title": "Ein schlechter Tag", "first": "Gestern ging bei mir wirklich alles schief.", "mid": "Zuerst hörte ich meinen Wecker nicht und wachte eine Stunde zu spät auf. Ich zog mich schnell an und lief zur Haltestelle, aber der Bus fuhr gerade weg. Also nahm ich ein Taxi, das mich viel Geld kostete. Im Büro merkte ich dann, dass ich mein Handy zu Hause vergessen hatte. Am Nachmittag fiel auch noch mein Computer aus, und ich verlor einen wichtigen Text. Als ich abends nach Hause kam, war ich völlig erschöpft.", "last": "Zum Glück ist heute ein neuer Tag."},
+ {"id": "x4-6", "set": "X4", "lvl": "B2", "title": "Influencer", "first": "In sozialen Netzwerken haben manche Menschen Millionen von Followern.", "mid": "Diese sogenannten Influencer verdienen ihr Geld häufig damit, dass sie Produkte bekannter Marken in ihren Videos präsentieren. Für Unternehmen ist diese Form der Werbung besonders attraktiv, weil sie junge Zielgruppen erreicht, die kaum noch fernsehen. Kritiker bemängeln allerdings, dass die Grenze zwischen persönlicher Meinung und bezahlter Werbung oft nicht klar erkennbar ist. In ~Deutschland müssen Influencer bezahlte Beiträge deshalb inzwischen ausdrücklich als Werbung kennzeichnen.", "last": "Verstöße gegen diese Pflicht können teure Abmahnungen nach sich ziehen."},
+ {"id": "x4-7", "set": "X4", "lvl": "B2", "title": "Elektroautos", "first": "Elektroautos gelten als wichtiger Baustein für einen klimafreundlicheren Verkehr.", "mid": "Da sie beim Fahren keine Abgase ausstoßen, verbessern sie vor allem in Städten die Luftqualität. Ihre tatsächliche Klimabilanz hängt jedoch stark davon ab, wie der Strom erzeugt wird, mit dem sie geladen werden. Zudem verbraucht die Herstellung der Batterien große Mengen an Energie und seltenen Rohstoffen. Viele Verbraucher zögern außerdem noch mit dem Kauf, weil die Fahrzeuge vergleichsweise teuer sind und es nicht überall genügend Ladestationen gibt.", "last": "Die Politik versucht, diese Hindernisse mit Förderprogrammen abzubauen."},
+ {"id": "x4-8", "set": "X4", "lvl": "C1", "title": "Was glücklich macht", "first": "Was Menschen wirklich glücklich macht, ist eine Frage, die Philosophen seit der Antike beschäftigt.", "mid": "Inzwischen widmet sich auch die empirische Forschung intensiv diesem Thema. Zahlreiche Studien legen nahe, dass materieller Wohlstand nur bis zu einem gewissen Grad zur Zufriedenheit beiträgt. Sind die grundlegenden Bedürfnisse erst einmal gedeckt, gewinnen andere Faktoren zunehmend an Bedeutung, allen voran stabile soziale Beziehungen. Ebenso scheint es sich positiv auszuwirken, wenn Menschen ihre Tätigkeit als sinnvoll empfinden und sich regelmäßig für andere engagieren.", "last": "Glück lässt sich demnach weniger kaufen als vielmehr gemeinsam gestalten."}
+];
+
+const CATS = {
+ fn:{name:"Kleine Wörter",desc:"Conjunctions, prepositions, adverbs (und, aber, weil, noch, mit, für…)",day:5},
+ det:{name:"Artikel & Pronomen",desc:"Articles, pronouns, possessives and their endings",day:2},
+ verb:{name:"Verben & Adjektive",desc:"Verb forms, adjective endings and other words",day:1},
+ noun:{name:"Nomen",desc:"Nouns: gender, plural, word endings",day:5}
+};
+const FN = new Set(("und oder aber denn weil dass wenn als ob obwohl damit sondern doch auch noch schon immer nur sehr nicht nichts mit für von vom bei beim nach aus zu zum zur in im ins an am ans auf über unter vor hinter neben zwischen durch gegen ohne um bis seit während wegen trotz statt hier dort da dann jetzt heute gestern morgen oft manchmal meistens wieder mehr weniger ganz so wie was wer wo wann warum etwa sogar bereits jedoch allerdings deshalb daher dabei dafür danach zuerst außerdem trotzdem dennoch zudem zwar genau etwas besonders vor allem erst kaum vielmehr nämlich inzwischen gleichzeitig bislang weit weg lange lieber früh spät zusammen allein nebenan unterwegs leider endlich bar besser").split(" "));
+const DET_RE = /^(d(er|ie|as|en|em|es)|ein(e|en|em|er|es)?|kein(e|en|em|er|es)?|mein(e|en|em|er|es)?|dein(e|en|em|er|es)?|sein(e|en|em|er|es)|ihr(e|en|em|er|es)?|unser(e|en|em|er|es)?|eu(er|re|ren|rem|rer|res)|dies(e|en|em|er|es)|jed(e|en|em|er|es)|welch(e|en|em|er|es)|all(e|en|er|es|em)|viel(e|en|er|es)?|manch(e|en|er)?|beide|beiden|ich|du|er|sie|es|wir|man|sich|mich|mir|dich|dir|ihn|ihm|uns|euch|ihnen|jeder|solcher|solche|solchen)$/;
+
+/* ---------- storage ---------- */
+const KEY = "onset-trainer-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+const store = Object.assign({history:[],plan:{},timer:true}, load());
+
+/* ---------- C-test builder ---------- */
+/* other answers that also fit the gap */
+const ALT = {gern:["gerne"], gerne:["gern"]};
+const TOK = /^([^\p{L}~]*)(~?)([\p{L}]+(?:-[\p{L}]+)*)?(.*)$/u;
+function buildGaps(text){
+  const tokens = text.mid.split(/\s+/);
+  const out = []; let want = false, n = 0, prevEnd = true;
+  for(const raw of tokens){
+    const m = raw.match(TOK);
+    const lead = m[1], lock = m[2] === "~", core = m[3] || "", trail = m[4] || "";
+    const isWord = core.length > 0;
+    const eligible = isWord && !lock && !core.includes("-") && core.length >= 2;
+    let piece;
+    if(!isWord){ piece = {plain: raw.replace("~","").replace(/\{[^}]*\}/,"")}; }
+    else if(n >= 20){ piece = {plain: lead + core + trail.replace(/^\{[^}]*\}/,"")}; }
+    else if(!want){ piece = {plain: lead + core + trail.replace(/^\{[^}]*\}/,"")}; want = true; }
+    else if(eligible){
+      const g = Math.floor(core.length/2);
+      let tr = trail, alts = [];
+      const am = tr.match(/^\{([^}]*)\}/);
+      if(am){ alts = am[1].split("/"); tr = tr.slice(am[0].length); }
+      alts = alts.concat(ALT[core.toLowerCase()] || []);
+      const given = core.slice(0,g);
+      const okMiss = [core.slice(g)].concat(alts.filter(w=>w.toLowerCase().startsWith(given.toLowerCase()) && w.length-g>=g && w.length-g<=g+1).map(w=>w.slice(g)));
+      piece = {lead, given, miss: core.slice(g), okMiss, word: core, trail: tr, idx: n, cat: catOf(core, prevEnd)};
+      n++; want = false;
+    } else { piece = {plain: lead + core + trail.replace(/^\{[^}]*\}/,"")}; }
+    out.push(piece);
+    prevEnd = /[.!?]$/.test(raw);
+  }
+  return {pieces: out, count: n};
+}
+function catOf(word, sentenceStart){
+  const w = word.toLowerCase();
+  if(DET_RE.test(w)) return "det";
+  if(FN.has(w)) return "fn";
+  if(!sentenceStart && /^\p{Lu}/u.test(word)) return "noun";
+  return "verb";
+}
+function fixUmlauts(s){
+  return s.replace(/([aouAOU])['"`´:]/g,(m,c)=>({a:"ä",o:"ö",u:"ü",A:"Ä",O:"Ö",U:"Ü"}[c])).replace(/([a-zäöü])B/g,"$1ß").replace(/s'/g,"ß");
+}
+function norm(s){ return (s||"").normalize("NFC").trim().toLowerCase(); }
+
+/* ---------- state ---------- */
+let S = null;   // running session
+let timerId = null, lastInput = null;
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function todayISO(){ const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+/* ---------- home ---------- */
+function home(){
+  stopTimer(); S = null;
+  const hist = store.history.slice(-8).reverse();
+  app.innerHTML = `
+  <header class="top"><h1>Tests <small>German C-test · onSET format</small></h1><a class="chip" href="index.html">← Dashboard</a></header>
+  <p class="note" style="margin:0;font-size:14px;color:var(--ink)"><b>How a C-test works:</b> in every text the first and last sentence are complete. In between, the second half of every second word is missing. Each gap has as many letters as are shown, or one more. 20 gaps per text, 5 minutes per text. Tip: read the first and last sentence first, fill the easy gaps, and never leave a gap empty.</p>
+
+  <section>
+    <h2>Full onSET simulations <span class="lvl">8 texts · like the real exam</span></h2>
+    <div class="modes">${["F1","F2","F3","F4"].map((s,i)=>`<button class="mode ${i===0?"primary":""}" data-onset="${s}" data-name="Full onSET Simulation ${i+1}"><strong>Simulation ${i+1}</strong><span${i===0?' style="color:inherit;opacity:.85"':""}>8 texts · 160 points · 40 min · easy → hard</span></button>`).join("")}</div>
+    <p class="note" style="margin-top:10px">Like the real exam: 8 texts, 20 gaps each, 5 minutes per text, getting harder from text 1 (A2) to text 8 (C1). Equal-size answer boxes, "TEXT FERTIG BEARBEITET" to go on, a special-character bar, and your result in points. Afterwards you get the full correction, and every mistake goes to <a href="mistakes.html">My mistakes</a>.</p>
+  </section>
+
+  <section>
+    <h2>Short onSET-style tests <span class="lvl">4 texts · B1</span></h2>
+    <div class="modes">${["O1","O2","O3","O4","O5","O6"].map((s,i)=>`<button class="mode" data-onset="${s}" data-name="Short Test ${i+1}"><strong>Short test ${i+1}</strong><span>4 texts · 80 points · B1 · 20 min</span></button>`).join("")}</div>
+    <p class="note" style="margin-top:10px">Same screen as the full simulations, but only 4 texts with everyday B1 topics. Good for a 20-minute session.</p>
+  </section>
+
+  <section>
+    <h2>A2 exams</h2>
+    <div class="modes">${["E1","E2","E3","E4"].map((s,i)=>`<button class="mode ${i===0?"primary":""}" data-exam="${s}" data-name="A2 Exam ${i+1}"><strong>A2 Exam ${i+1}</strong><span${i===0?' style="color:inherit;opacity:.85"':""}>8 texts · A2 vocabulary &amp; grammar · 40 min</span></button>`).join("")}</div>
+    <p class="note" style="margin-top:10px">For learners at A2 who want to reach B1: all texts use A2 vocabulary and grammar (see the <a href="grammar.html">Grammar</a> page). 5 minutes per text, results at the end. No German keyboard? Type a' o' u' for ä ö ü and s' for ß.</p>
+  </section>
+
+  <section>
+    <h2>Mixed-level exams <span class="lvl">A2 → C1</span></h2>
+    <div class="modes">${["X1","X2","X3","X4"].map((s,i)=>`<button class="mode" data-exam="${s}" data-name="Mixed Exam ${i+1}"><strong>Mixed Exam ${i+1}</strong><span>8 texts · A2 → C1 · 40 min</span></button>`).join("")}</div>
+  </section>
+
+  <section>
+    <h2>More practice tests</h2>
+    <div class="modes">
+      <button class="mode" data-mock="C"><strong>Mock test C</strong><span>8 texts · 160 gaps · 40 min · A2–B2</span></button>
+      <button class="mode" data-mock="D"><strong>Mock test D</strong><span>8 texts · 40 min · A2–B2</span></button>
+      <button class="mode" data-quick="1"><strong>Quick 4</strong><span>4 random A2–B1 texts · 20 min</span></button>
+      <button class="mode" data-mock="A"><strong>Mock test A</strong><span>8 texts · 40 min · A2–C1</span></button>
+      <button class="mode" data-mock="B"><strong>Mock test B</strong><span>8 texts · 40 min · A2–C1</span></button>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <label class="toggle"><input type="checkbox" id="timerToggle" ${store.timer?"checked":""}> 5-minute timer per text (as in the real test)</label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Practise one text</h2>
+    <div class="texts">${TEXTS.filter(t=>!/^[EXOF]/.test(t.set)).map(t=>`<button data-one="${t.id}"><span>${esc(t.title)}</span><span class="lvl">${t.lvl}</span></button>`).join("")}</div>
+  </section>
+
+  <section>
+    <h2>Your last results</h2>
+    <div class="hist">
+      ${hist.length ? hist.map(h=>`<div class="hrow"><span class="muted">${esc(h.when)}</span><span class="bar" title="${esc(h.title)}"><i style="width:${h.score/h.max*100}%"></i></span><span class="num">${h.score}/${h.max}</span></div>`).join("") : `<p class="muted" style="margin:4px 0 0">No results yet. Start with Full Simulation 1 to see where you are.</p>`}
+    </div>
+    <p class="note" style="margin-top:12px">All texts were written for practice in the onSET format. Use the scores to track your own progress; they are not official onSET levels. Your full history is on the <a href="index.html">Dashboard</a>.</p>
+  </section>`;
+  app.querySelectorAll("[data-onset]").forEach(b=>b.onclick=()=>start(TEXTS.filter(t=>t.set===b.dataset.onset), b.dataset.name, true, "onset"));
+  app.querySelectorAll("[data-exam]").forEach(b=>b.onclick=()=>start(TEXTS.filter(t=>t.set===b.dataset.exam), b.dataset.name, true));
+  app.querySelectorAll("[data-mock]").forEach(b=>b.onclick=()=>start(TEXTS.filter(t=>t.set===b.dataset.mock), "Mock test "+b.dataset.mock));
+  app.querySelector("[data-quick]").onclick=()=>{
+    const pool = TEXTS.filter(t=>!/^[EXOF]/.test(t.set)&&t.lvl!=="B2"&&t.lvl!=="C1").sort(()=>Math.random()-.5).slice(0,4);
+    pool.sort((a,b)=>a.lvl.localeCompare(b.lvl));
+    start(pool,"Quick 4");
+  };
+  app.querySelectorAll("[data-one]").forEach(b=>b.onclick=()=>start([TEXTS.find(t=>t.id===b.dataset.one)], b.querySelector("span").textContent));
+  document.getElementById("timerToggle").onchange=e=>{ store.timer=e.target.checked; save(); };
+  window.scrollTo(0,0);
+}
+
+/* ---------- test ---------- */
+function start(list, title, exam, style){
+  S = {id: "t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), startedAt: new Date().toISOString(), title, texts: list.map(t=>({t, g: buildGaps(t), answers: [], timeUp:false})), i:0, done:0, timed: exam ? true : store.timer, exam: !!exam, style: style||""};
+  showText();
+}
+function showText(){
+  if(S.style==="onset") return showOnset();
+  stopTimer();
+  const cur = S.texts[S.i];
+  const total = S.texts.length;
+  const passage = cur.g.pieces.map(p=>{
+    if(p.plain!==undefined) return esc(p.plain);
+    const w = p.given.length + 1;
+    return `<span class="gap">${esc(p.lead)}<span class="given">${esc(p.given)}</span><input id="g${S.i}_${p.idx}" data-idx="${p.idx}" maxlength="${w}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Gap ${p.idx+1}: ${esc(p.given)}…" style="width:calc(${w}ch + 8px)">${esc(p.trail)}</span>`;
+  }).join(" ");
+  app.innerHTML = `
+  <div class="testbar">
+    <div class="row" style="gap:12px"><button id="quit">Quit</button><span class="muted">${esc(S.title)} · Text ${S.i+1}/${total}</span></div>
+    <div class="dots" aria-hidden="true">${S.texts.map((_,k)=>`<i class="${k<S.i?"on":k===S.i?"cur":""}"></i>`).join("")}</div>
+    <span class="timer" id="timer">${S.timed?"5:00":"no timer"}</span>
+  </div>
+  <article class="sheet">
+    <h3>${esc(cur.t.title)} <span class="lvl">${cur.t.lvl}</span></h3>
+    <p class="passage">${esc(cur.t.first)} ${passage} ${esc(cur.t.last)}</p>
+  </article>
+  <div class="row" style="justify-content:space-between">
+    <div class="keys" aria-label="Insert special letters">${["ä","ö","ü","ß"].map(k=>`<button data-key="${k}" tabindex="-1">${k}</button>`).join("")}</div>
+    <button class="primary" id="next">${S.i<total-1?"Next text →":"Finish and see results"}</button>
+  </div>
+  <p class="hint">No German keyboard? Type <b>a'</b> <b>o'</b> <b>u'</b> for ä ö ü and <b>s'</b> for ß: they change automatically. Type only the missing letters. Each gap needs as many letters as are shown, or one more. Tab or Enter moves to the next gap.</p>`;
+  const inputs = [...app.querySelectorAll(".gap input")];
+  inputs.forEach((inp,k)=>{
+    inp.addEventListener("focus",()=>lastInput=inp);
+    inp.addEventListener("input",()=>{ const v = fixUmlauts(inp.value); if(v!==inp.value){ const pos = Math.max(0, inp.selectionStart - (inp.value.length - v.length)); inp.value = v; try{ inp.setSelectionRange(pos,pos); }catch(e){} } });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); (inputs[k+1]||document.getElementById("next")).focus(); } });
+  });
+  app.querySelectorAll("[data-key]").forEach(b=>{
+    b.addEventListener("mousedown",e=>e.preventDefault());
+    b.onclick=()=>{ const inp=lastInput; if(!inp||inp.disabled) return;
+      const s=inp.selectionStart??inp.value.length, e2=inp.selectionEnd??s;
+      if(inp.value.length - (e2-s) >= inp.maxLength) return;
+      inp.value=inp.value.slice(0,s)+b.dataset.key+inp.value.slice(e2); inp.focus(); inp.setSelectionRange(s+1,s+1); };
+  });
+  document.getElementById("next").onclick=()=>finishText(false);
+  document.getElementById("quit").onclick=()=>{ if(S.quitArmed){ quitTest(); } else { S.quitArmed=true; document.getElementById("quit").textContent="Quit? Click again"; setTimeout(()=>{ if(S){ S.quitArmed=false; const q=document.getElementById("quit"); if(q) q.textContent="Quit"; } },3000); } };
+  if(inputs[0]) inputs[0].focus({preventScroll:true});
+  window.scrollTo(0,0);
+  if(S.timed){
+    const end = Date.now()+300000;
+    const el = document.getElementById("timer");
+    timerId = setInterval(()=>{
+      const left = Math.max(0, end-Date.now());
+      const sec = Math.ceil(left/1000);
+      el.textContent = Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0");
+      el.classList.toggle("low", sec<=30);
+      if(left<=0) finishText(true);
+    },250);
+  }
+}
+function finishText(timeUp){
+  stopTimer();
+  captureCurrent(timeUp);
+  S.done = S.i + 1;
+  if(S.i < S.texts.length-1){ persist("in progress"); S.i++; showText(); } else results();
+}
+function captureCurrent(timeUp){
+  const cur = S.texts[S.i];
+  cur.answers = [...app.querySelectorAll(".gap input")].map(i=>i.value);
+  cur.timeUp = !!timeUp;
+}
+function quitTest(){
+  stopTimer();
+  captureCurrent(false);
+  // keep the half-done text only if something was typed in it
+  const typed = S.texts[S.i].answers.some(a=>a.trim());
+  S.done = S.i + (typed ? 1 : 0);
+  if(S.done > 0) persist("stopped early");
+  home();
+}
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+
+/* ---------- grading ---------- */
+function grade(sess){
+  let score=0, max=0;
+  const cat = {fn:[0,0],det:[0,0],verb:[0,0],noun:[0,0]};
+  const per = [], mistakes = [];
+  const wordOf = q => q.plain!==undefined ? q.plain : q.lead+q.word+q.trail;
+  sess.texts.slice(0, sess.done).forEach(x=>{
+    let s=0;
+    x.g.pieces.forEach((p,j)=>{
+      if(p.idx===undefined) return;
+      const a = x.answers[p.idx]||"";
+      const ok = (p.okMiss||[p.miss]).some(m=>norm(a)===norm(m));
+      p.ok = ok; p.ans = a; p.text = x.t.title;
+      p.ctx = x.g.pieces.slice(Math.max(0,j-3), j).map(wordOf).join(" ")+" ["+p.given+"|"+p.miss+"] "+x.g.pieces.slice(j+1,j+3).map(wordOf).join(" ");
+      cat[p.cat][1]++; if(ok){ cat[p.cat][0]++; s++; } else mistakes.push(p);
+    });
+    per.push({id:x.t.id, title:x.t.title, lvl:x.t.lvl, s, n:x.g.count, timeUp:x.timeUp, blank:x.answers.filter(a=>!a.trim()).length});
+    score+=s; max+=x.g.count;
+  });
+  const ranked = Object.entries(cat).filter(([,v])=>v[1]>0).map(([k,v])=>({k, ok:v[0], n:v[1], rate:v[0]/v[1]})).sort((a,b)=>a.rate-b.rate);
+  return {score, max, cat, per, mistakes, ranked};
+}
+function makeRecord(sess, status){
+  const r = grade(sess);
+  return {
+    at: sess.startedAt, updated: new Date().toISOString(), status, title: sess.title, timed: sess.timed,
+    score: r.score, max: r.max,
+    cats: Object.fromEntries(Object.entries(r.cat).map(([k,v])=>[k,{ok:v[0],n:v[1]}])),
+    texts: r.per,
+    mistakes: r.mistakes.map(p=>({text:p.text, given:p.given, answer:p.ans, correct:p.miss, word:p.word, cat:p.cat, ctx:p.ctx}))
+  };
+}
+let dbPromise = null;
+function getDb(){
+  if(!dbPromise) dbPromise = Promise.resolve(window.CTT ? CTT.db : null);
+  return dbPromise;
+}
+async function persist(status){
+  const rec = makeRecord(S, status), id = S.id;
+  try{
+    const db = await getDb();
+    if(!db) return false;
+    await db.collection("attempts").doc(id).set(rec);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ---------- onSET-style screen (like the official sample test) ---------- */
+function showOnset(){
+  stopTimer();
+  const cur = S.texts[S.i], total = S.texts.length;
+  const passage = cur.g.pieces.map(p=>{
+    if(p.plain!==undefined) return esc(p.plain);
+    return `<span class="gap os-g">${esc(p.lead)}${esc(p.given)}<input id="g${S.i}_${p.idx}" data-idx="${p.idx}" class="os-in" maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Lücke ${p.idx+1}">${esc(p.trail)}</span>`;
+  }).join(" ");
+  app.innerHTML = `
+  <div class="os-wrap">
+    <div class="os-top"><span>Practice simulation in the onSET format · not the official test</span><span><span id="timer" class="os-timer">5:00</span> · <button class="os-quit" id="quit">Quit</button></span></div>
+    <div class="os-panel">
+      <div class="os-title">${esc(cur.t.title)}</div>
+      <p class="os-text">${esc(cur.t.first)} ${passage} ${esc(cur.t.last)}</p>
+      <label class="os-done"><input type="checkbox" id="osdone"> TEXT FERTIG BEARBEITET</label>
+      <div class="os-count">Text&nbsp;&nbsp;${S.i+1}&nbsp;&nbsp;von&nbsp;&nbsp;${total}</div>
+    </div>
+    <div class="os-bar">Hier klicken, wenn Sie Sonderzeichen brauchen: ${["ä","ö","ü","ß"].map(k=>`<button data-key="${k}" tabindex="-1">${k}</button>`).join("")}</div>
+  </div>`;
+  const inputs = [...app.querySelectorAll(".os-in")];
+  inputs.forEach((inp,k)=>{
+    inp.addEventListener("focus",()=>lastInput=inp);
+    inp.addEventListener("input",()=>{ const v = fixUmlauts(inp.value); if(v!==inp.value){ const pos = Math.max(0, inp.selectionStart - (inp.value.length - v.length)); inp.value = v; try{ inp.setSelectionRange(pos,pos); }catch(e){} } });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); (inputs[k+1]||document.getElementById("osdone")).focus(); } });
+  });
+  app.querySelectorAll("[data-key]").forEach(b=>{
+    b.addEventListener("mousedown",e=>e.preventDefault());
+    b.onclick=()=>{ const inp=lastInput; if(!inp) return; const s=inp.selectionStart??inp.value.length, e2=inp.selectionEnd??s;
+      inp.value=inp.value.slice(0,s)+b.dataset.key+inp.value.slice(e2); inp.focus(); inp.setSelectionRange(s+1,s+1); };
+  });
+  document.getElementById("osdone").onchange = e=>{ if(e.target.checked) finishText(false); };
+  document.getElementById("quit").onclick=()=>{ if(S.quitArmed){ quitTest(); } else { S.quitArmed=true; document.getElementById("quit").textContent="Quit? Click again"; setTimeout(()=>{ if(S){ S.quitArmed=false; const q=document.getElementById("quit"); if(q) q.textContent="Quit"; } },3000); } };
+  if(inputs[0]) inputs[0].focus({preventScroll:true});
+  window.scrollTo(0,0);
+  const end = Date.now()+300000, el = document.getElementById("timer");
+  timerId = setInterval(()=>{
+    const left = Math.max(0, end-Date.now()), sec = Math.ceil(left/1000);
+    el.textContent = Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0");
+    el.classList.toggle("low", sec<=30);
+    if(left<=0) finishText(true);
+  },250);
+}
+function onsetEnd(){
+  const {score, max} = grade(S);
+  const pct = (score/max*100).toFixed(2).replace(/\.?0+$/,"");
+  app.innerHTML = `
+  <div class="os-wrap">
+    <div class="os-top"><span>Practice simulation in the onSET format · not the official test</span><span></span></div>
+    <div class="os-panel os-end">
+      <p>Der Test ist beendet. Sie haben folgendes Ergebnis erzielt:</p>
+      <p class="os-pts"><b>${score}</b>&nbsp; Punkte</p>
+      <p>Dies sind ${pct} % der maximal möglichen ${max} Punkte.</p>
+      <p class="os-cmp">Practice result in the onSET format. Not an official onSET level.</p>
+      <button class="os-endbtn" id="osfinish">TEST BEENDEN · see corrections</button>
+    </div>
+    <div class="os-bar"></div>
+  </div>`;
+  persist("finished");
+  document.getElementById("osfinish").onclick = ()=>results();
+}
+
+/* ---------- results ---------- */
+function results(){
+  if(S.style==="onset" && !S.endShown){ S.endShown = true; return onsetEnd(); }
+  const {score, max, per, mistakes, ranked} = grade(S);
+  const d = new Date();
+  store.history.push({when: d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"), title:S.title, score, max});
+  if(store.history.length>60) store.history = store.history.slice(-60);
+  save();
+
+  const weakest = ranked[0];
+  const pct = Math.round(score/max*100);
+  const scaled = max===160 ? "" : `<span class="muted">≈ ${Math.round(score/max*160)}/160 if scaled to a full test</span>`;
+  app.innerHTML = `
+  <header class="top"><h1>${esc(S.title)} <small>result</small></h1><button id="home">← Back to start</button></header>
+  <section class="score">
+    <span class="big">${score}<span class="muted" style="font-size:.5em">/${max}</span></span>
+    <span><b>${pct}% correct</b><br>${scaled || `<span class="muted">Full test: 160 points</span>`}</span>
+  </section>
+  <div class="row"><span class="chip" id="syncState">Saving…</span><button id="copyRes">Copy results</button></div>
+  ${weakest ? `<p class="note" style="font-size:15px;color:var(--ink)">Most points lost in <b>${CATS[weakest.k].name}</b> (${weakest.ok}/${weakest.n} correct). Make that your focus: ${({fn:'<a href="vocab.html">small words in the vocabulary trainer</a> and grammar topic 6',det:'<a href="grammar.html#artikel">grammar topics 1 and 2</a> and the der/die/das drill',verb:'<a href="grammar.html#verbliste">the verb list and verb drill</a>',noun:'<a href="grammar.html#nomen">grammar topic 8</a> and the der/die/das drill'})[weakest.k]}. Every wrong gap is now in <a href="mistakes.html">My mistakes</a>.</p>`:""}
+  <section>
+    <h2>By mistake type</h2>
+    <div class="cats">${ranked.map((r,i)=>`<div class="cat ${i===0&&r.rate<.8?"weak":""}"><b>${CATS[r.k].name}</b><span class="num">${r.ok}/${r.n}</span><span class="bar"><i style="width:${r.rate*100}%"></i></span><small>${CATS[r.k].desc}</small></div>`).join("")}</div>
+  </section>
+  <section>
+    <h2>By text</h2>
+    <div class="tscores">${per.map(p=>`<div class="ts"><span>${esc(p.title)} <span class="lvl">${p.lvl}</span>${p.timeUp?' <span class="muted" title="Time ran out">⏱</span>':""}</span><span class="num">${p.s}/${p.n}</span></div>`).join("")}</div>
+  </section>
+  <section>
+    <h2>Your mistakes (${mistakes.length})</h2>
+    ${mistakes.length ? `<div class="mist">${mistakes.map(p=>`<span class="m">${esc(p.given)}${p.ans?`<s>${esc(p.ans)}</s>`:'<s>___</s>'}→<b>${esc(p.miss)}</b></span>`).join("")}</div>` : `<p>No mistakes. Try a harder text or a full mock test.</p>`}
+  </section>
+  <section>
+    <h2>Read the corrected texts</h2>
+    <div style="display:flex;flex-direction:column;gap:8px">${S.texts.map(x=>`<details><summary>${esc(x.t.title)}</summary><p class="solved">${esc(x.t.first)} ${x.g.pieces.map(p=>p.plain!==undefined?esc(p.plain):`${esc(p.lead)}${esc(p.given)}<span class="${p.ok?"r":"w"}">${esc(p.miss)}</span>${esc(p.trail)}`).join(" ")} ${esc(x.t.last)}</p></details>`).join("")}</div>
+  </section>`;
+  document.getElementById("home").onclick=home;
+  const plain = `onSET Trainer – ${S.title}: ${score}/${max}\n` +
+    ranked.map(r=>`${CATS[r.k].name}: ${r.ok}/${r.n}`).join("\n") + "\nMistakes:\n" +
+    mistakes.map(m=>`${m.given}[${m.ans||"—"}] → ${m.word}   (${m.ctx})`).join("\n");
+  document.getElementById("copyRes").onclick = async e => {
+    try{ await navigator.clipboard.writeText(plain); e.target.textContent="Copied"; }
+    catch(err){ e.target.textContent="Copy failed"; }
+  };
+  persist("finished").then(ok=>{
+    const el = document.getElementById("syncState");
+    if(el) el.textContent = ok ? "Saved to your progress · see My mistakes" : "Could not save. Use Copy results";
+  });
+  window.scrollTo(0,0);
+  S = null;
+}
+
+window.__ctest = {buildGaps, TEXTS};
+/* deep links: test.html#F1 starts that test directly */
+const deep = (location.hash||"").replace("#","");
+const DEEPSETS = {F1:"Full Simulation 1",F2:"Full Simulation 2",F3:"Full Simulation 3",F4:"Full Simulation 4",O1:"Short Test 1",O2:"Short Test 2",O3:"Short Test 3",O4:"Short Test 4",O5:"Short Test 5",O6:"Short Test 6"};
+home();
+if(DEEPSETS[deep]) start(TEXTS.filter(t=>t.set===deep), DEEPSETS[deep], true, "onset");
+})();
+</script>
+</body>
+</html>

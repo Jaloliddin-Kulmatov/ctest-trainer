@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grammar · C-Test Trainer</title>
+<meta name="description" content="A2, B1 and B2 German grammar for the C-test: tables, examples with translations, a self-check for every topic, a B1 verb list and a der/die/das drill.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css">
+<script src="assets/common.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: one study-sheet column with a sticky topic bar; der/die/das colour-coded like a learner's notebook */
+:root{
+  --paper:#f5f7fa; --card:#ffffff; --ink:#172130; --muted:#5a6575; --line:#d8dde5; --soft:#eef1f6;
+  --accent:#2446c7; --accent-ink:#ffffff; --mark:#fff1a8; --mark-line:#e2c64a;
+  --ok:#1d7f47; --ok-bg:#e3f4ea; --bad:#b8322b; --bad-bg:#fbe7e5;
+  --m:#2459c4; --f:#c0334a; --n:#1d7f52; --pl:#7a5a00;
+  --ui:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --text:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f131a; --card:#161c26; --ink:#e5e9f0; --muted:#98a2b1; --line:#2a3240; --soft:#1c2330;
+  --accent:#8aa4ff; --accent-ink:#0f131a; --mark:#3a3417; --mark-line:#8a7a2c;
+  --ok:#5fcf8f; --ok-bg:#16301f; --bad:#ff8a80; --bad-bg:#3a1c1a;
+  --m:#7fa6ff; --f:#ff8a9b; --n:#62d29a; --pl:#e8c35a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f131a; --card:#161c26; --ink:#e5e9f0; --muted:#98a2b1; --line:#2a3240; --soft:#1c2330;
+  --accent:#8aa4ff; --accent-ink:#0f131a; --mark:#3a3417; --mark-line:#8a7a2c;
+  --ok:#5fcf8f; --ok-bg:#16301f; --bad:#ff8a80; --bad-bg:#3a1c1a;
+  --m:#7fa6ff; --f:#ff8a9b; --n:#62d29a; --pl:#e8c35a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.55}
+.wrap{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:20px 80px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
+h1 small{font-weight:400;color:var(--muted);font-size:15px;letter-spacing:0;margin-left:6px}
+.intro{color:var(--muted);max-width:65ch;margin:12px 0 0}
+nav.topics{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:flex;gap:6px;overflow-x:auto;padding-block:10px;margin-block:8px 0;border-bottom:1px solid var(--line);scrollbar-width:thin}
+nav.topics a{flex:none;font-size:13px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;white-space:nowrap}
+nav.topics a:hover{border-color:var(--accent)}
+nav.topics a .st{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:4px}
+nav.topics a.done .st{color:var(--ok)}
+.grp{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:44px 0 0;font-weight:600}
+section.topic{padding-top:24px;scroll-margin-top:64px}
+section.topic>h2{font-size:22px;margin:0 0 4px;text-wrap:balance;display:flex;gap:10px;align-items:baseline}
+section.topic>h2 .no{font-family:var(--mono);font-size:13px;color:var(--muted);font-weight:400}
+.why{color:var(--muted);margin:0 0 14px;max-width:65ch}
+h3{font-size:15px;margin:18px 0 8px}
+p{margin:0 0 10px;max-width:68ch}
+.tbl{overflow-x:auto;margin:8px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{background:var(--soft);font-weight:600;font-size:13px}
+td.k,th.k{color:var(--muted);font-weight:600;white-space:nowrap}
+.de{font-family:var(--text);font-size:16px}
+.ex{margin:8px 0;padding-left:12px;border-left:3px solid var(--line);max-width:68ch}
+.ex .exde{display:block;font-family:var(--text);font-size:16px}
+.ex .tr,.trs{display:block;font-family:var(--ui);font-size:13.5px;color:var(--muted)}
+.ex .nt{display:block;font-family:var(--ui);font-size:13px;color:var(--accent)}
+.box .ex{border-left-color:var(--soft)}
+.ex b{color:var(--accent)}
+.m{color:var(--m)} .f{color:var(--f)} .n{color:var(--n)} .p{color:var(--pl)}
+.tip{background:var(--mark);border-left:4px solid var(--mark-line);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:14px;max-width:68ch}
+.tip b:first-child{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.box{border:1px solid var(--line);border-radius:8px;background:var(--card);padding:10px 14px;min-width:0}
+.box h4{margin:0 0 6px;font-size:14px}
+.box p{font-size:14px;margin:0}
+/* quiz */
+.quiz{margin-top:16px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:14px 16px}
+.quiz h3{margin:0 0 8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.quiz ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.quiz li{font-family:var(--text);font-size:16px;line-height:2}
+.quiz li .h{font-family:var(--ui);font-size:13px;color:var(--muted)}
+.quiz input{font-family:var(--mono);font-size:15px;border:0;border-bottom:2px solid var(--mark-line);background:var(--mark);color:var(--ink);padding:1px 4px;border-radius:3px 3px 0 0;width:9ch}
+.quiz input.ok{background:var(--ok-bg);border-color:var(--ok)}
+.quiz input.bad{background:var(--bad-bg);border-color:var(--bad)}
+.quiz .fix{font-family:var(--mono);font-size:13px;color:var(--ok);margin-left:6px}
+.qbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.score{font-family:var(--mono);font-size:14px}
+button{font-family:var(--ui);font-size:14px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.saved{font-size:12px;color:var(--muted)}
+/* vocab */
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.w{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:3px 8px;font-size:14px}
+.w .de{font-size:15px}
+.w small{color:var(--muted)}
+.nouns{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 14px}
+.noun{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted var(--line);padding:3px 0;font-size:14px;min-width:0}
+.noun .de{font-size:15px}
+.noun .art{font-weight:600}
+.noun small{color:var(--muted);text-align:right}
+details.topicv{border:1px solid var(--line);border-radius:8px;background:var(--card);padding:8px 14px;margin-bottom:8px}
+details.topicv summary{cursor:pointer;font-weight:600}
+details.topicv[open] summary{margin-bottom:8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin:6px 0 10px}
+.frag{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+.frag div{border:1px solid var(--line);border-radius:6px;background:var(--card);padding:4px 8px;font-size:14px}
+.frag b{font-family:var(--mono);background:var(--mark);padding:0 3px;border-radius:3px}
+.drill{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.drill .big{font-family:var(--mono);font-size:32px}
+.drill .big span{display:inline-block;min-width:4ch;border-bottom:3px solid var(--mark-line);background:var(--mark);margin-left:2px}
+.drill input{font-family:var(--mono);font-size:18px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);width:12ch}
+.drill .res{font-size:14px;min-height:1.5em}
+a{color:var(--accent)}
+.foot{margin-top:48px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:520px){h1{font-size:24px}.quiz li{font-size:15px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+html{scroll-behavior:smooth}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top"><h1>Grammatik &amp; Wortschatz <small>A2 · B1 · B2 · for the C-test</small></h1><a href="test.html">Go to the tests →</a></header>
+<p class="intro">Everything A2, B1 and B2 you need for the C-test: A2 grammar, B1 grammar, B2 grammar, the verb list, then vocabulary. Read a topic, then do the check at the end. Your scores are saved in your browser, and the topic bar shows them. <b>No German keyboard?</b> Type a' o' u' for ä ö ü and s' for ß: they change automatically.</p>
+<nav class="topics" id="nav" aria-label="Topics"></nav>
+<div id="content"></div>
+<p class="foot">Colours: <span class="m">der</span> masculine · <span class="f">die</span> feminine · <span class="n">das</span> neuter · <span class="p">die</span> plural. Plural notes: <span class="de">-e</span> adds e, <span class="de">¨-e</span> adds umlaut and e, <span class="de">-</span> no change.</p>
+</main>
+
+<script>
+(function(){
+"use strict";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tbl = (head, rows, firstKey=true) => `<div class="tbl"><table><tr>${head.map((h,i)=>`<th${i===0&&firstKey?' class="k"':""}>${h}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map((c,i)=>`<td${i===0&&firstKey?' class="k"':' class="de"'}>${c}</td>`).join("")}</tr>`).join("")}</table></div>`;
+const ex = (...xs) => xs.map(x=>{ const [de,en,nt] = x.split("||").map(s=>s.trim()); return `<div class="ex"><span class="exde">${de}</span>${en?`<span class="tr">${en}</span>`:""}${nt?`<span class="nt">→ ${nt}</span>`:""}</div>`; }).join("");
+const tip = (t, body) => `<div class="tip"><b>${t}</b>${body}</div>`;
+
+/* ================= GRAMMAR TOPICS ================= */
+const G = [];
+
+G.push({id:"artikel", grp:"Grammatik", title:"Artikel & die 4 Fälle", why:"The single biggest source of C-test points: d___, ein___, mein___ appear in almost every line.",
+html:`
+<h3>Definite article (der / die / das)</h3>
+${tbl(["","<span class='m'>masc.</span>","<span class='f'>fem.</span>","<span class='n'>neut.</span>","<span class='p'>plural</span>"],[
+ ["Nominativ","<span class='m'>der</span> Mann","<span class='f'>die</span> Frau","<span class='n'>das</span> Kind","<span class='p'>die</span> Leute"],
+ ["Akkusativ","<span class='m'><b>den</b></span> Mann","<span class='f'>die</span> Frau","<span class='n'>das</span> Kind","<span class='p'>die</span> Leute"],
+ ["Dativ","<span class='m'><b>dem</b></span> Mann","<span class='f'><b>der</b></span> Frau","<span class='n'><b>dem</b></span> Kind","<span class='p'><b>den</b></span> Leute<b>n</b>"],
+ ["Genitiv","<span class='m'>des</span> Mann<b>es</b>","<span class='f'>der</span> Frau","<span class='n'>des</span> Kind<b>es</b>","<span class='p'>der</span> Leute"]])}
+<h3>Indefinite article and kein / mein / dein / sein / ihr / unser / euer</h3>
+${tbl(["","<span class='m'>masc.</span>","<span class='f'>fem.</span>","<span class='n'>neut.</span>","<span class='p'>plural</span>"],[
+ ["Nominativ","ein","eine","ein","keine / meine"],
+ ["Akkusativ","<b>einen</b>","eine","ein","keine / meine"],
+ ["Dativ","<b>einem</b>","<b>einer</b>","<b>einem</b>","<b>keinen</b> / meinen (+n)"],
+ ["Genitiv","eines (+s)","einer","eines (+s)","keiner / meiner"]])}
+<p>Possessives take exactly the same endings as <span class="de">ein</span>: ich → <span class="de">mein</span>, du → <span class="de">dein</span>, er/es → <span class="de">sein</span>, sie → <span class="de">ihr</span>, wir → <span class="de">unser</span>, ihr → <span class="de">euer</span> (eure), sie/Sie → <span class="de">ihr/Ihr</span>.</p>
+${ex("Ich besuche <b>meinen</b> Bruder. || I'm visiting my brother. || besuchen + Akkusativ; Bruder is der → meinen","Sie wohnt bei <b>ihrer</b> Tante. || She lives with her aunt. || bei + Dativ; Tante is die → ihrer","Wir sprechen mit <b>unseren</b> Kinder<b>n</b>. || We talk to our children. || mit + Dativ plural → unseren … Kindern (+n)")}
+<h3>Which case?</h3>
+<div class="cols">
+ <div class="box"><h4>Nominativ: wer? was?</h4><p>The subject. Also after <span class="de">sein, werden, heißen</span>: <span class="de">Das ist ein Tisch.</span></p></div>
+ <div class="box"><h4>Akkusativ: wen? was?</h4><p>Direct object. After <span class="de">haben, brauchen, kaufen, sehen, es gibt</span>…</p></div>
+ <div class="box"><h4>Dativ: wem?</h4><p>Indirect object (<span class="de">Ich gebe <b>dem</b> Kind das Buch</span> = I give the child the book), and after <span class="de">helfen, danken, gefallen, gehören, antworten, gratulieren, schmecken, passen</span>.</p></div>
+ <div class="box"><h4>Genitiv: wessen?</h4><p>Mostly recognise it: <span class="de">das Auto <b>des</b> Lehrers</span>, <span class="de">wegen <b>des</b> Wetters</span>, <span class="de">während <b>des</b> Studiums</span>.</p></div>
+</div>
+${tip("C-test tip","<span class='de'>d___</span> has only 1 letter shown, so it can be der, die, das, den, dem or des. Look at the noun after it (gender, plural?) and the verb or preposition before it (which case?). <span class='de'>ei___</span> = ein / eine; <span class='de'>ein___</span> = einen / einem / einer / eines.")}`,
+quiz:[["Ich habe ___ Bruder und zwei Schwestern.","ein, Akk","einen"],["Wir helfen ___ alten Frau.","die","der"],["Das Fahrrad gehört ___ Kind.","das","dem"],["Er kauft ___ neuen Tisch.","der","den"],["Sie wohnt mit ___ Freundin zusammen.","ihr","ihrer"],["Ich schenke ___ Kindern Schokolade.","die, Plural","den"],["Wegen ___ Regens bleiben wir zu Hause.","der Regen","des"],["Hast du ___ Zeit?","kein, fem.","keine"]]});
+
+G.push({id:"pronomen", grp:"Grammatik", title:"Pronomen", why:"Short and frequent: mi___, ih___, un___ are easy points once the table is automatic.",
+html:`
+${tbl(["","ich","du","er","sie","es","wir","ihr","sie / Sie"],[
+ ["Nominativ","ich","du","er","sie","es","wir","ihr","sie / Sie"],
+ ["Akkusativ","<b>mich</b>","<b>dich</b>","<b>ihn</b>","sie","es","<b>uns</b>","<b>euch</b>","sie / Sie"],
+ ["Dativ","<b>mir</b>","<b>dir</b>","<b>ihm</b>","<b>ihr</b>","<b>ihm</b>","uns","euch","<b>ihnen / Ihnen</b>"],
+ ["Reflexiv","mich / mir","dich / dir","sich","sich","sich","uns","euch","sich"]])}
+${ex("Kannst du <b>mir</b> helfen? || Can you help me? || helfen always takes Dativ: mir, not mich","Ich rufe <b>dich</b> morgen an. || I'll call you tomorrow. || anrufen + Akkusativ → dich","Wie geht es <b>Ihnen</b>? || How are you? (polite) || Ihnen = Dativ of Sie","Ich freue <b>mich</b> auf das Wochenende. || I'm looking forward to the weekend. || sich freuen is reflexive → mich","Ich wasche <b>mir</b> die Hände. || I wash my hands. || Dativ mir, because die Hände is already the Akk object")}
+${tip("Watch out","<span class='de'>ihr</span> has three jobs: 'you all' (ihr seid), 'to her' (Dativ: ich helfe ihr) and 'her/their' (possessive: ihr Auto, ihre Mutter). Context decides.")}`,
+quiz:[["Kannst du ___ bitte helfen?","ich","mir"],["Ich sehe ___ morgen in der Uni.","er","ihn"],["Wie geht es ___?","Sie, polite","Ihnen"],["Ich freue ___ auf die Ferien.","ich, reflexive","mich"],["Das Kleid gefällt ___ sehr.","sie, singular","ihr"],["Wir treffen ___ um acht Uhr.","wir, reflexive","uns"],["Ich habe ___ ein Geschenk gekauft.","du","dir"],["Die Kinder? Ich gebe ___ Schokolade.","sie, plural","ihnen"]]});
+
+G.push({id:"praep", grp:"Grammatik", title:"Präpositionen", why:"Prepositions are 1–3 letter gaps (mi___, f___, b___) and they decide the case of the next article.",
+html:`
+<div class="cols">
+ <div class="box"><h4>Always + Akkusativ</h4><p class="de">durch, für, gegen, ohne, um, bis</p></div>
+ <div class="box"><h4>Always + Dativ</h4><p class="de">aus, bei, mit, nach, seit, von, zu, gegenüber</p></div>
+ <div class="box"><h4>Two-way (Wechselpräpositionen)</h4><p class="de">an, auf, hinter, in, neben, über, unter, vor, zwischen</p><p><b>Wo?</b> (location) → Dativ · <b>Wohin?</b> (movement to) → Akkusativ</p></div>
+</div>
+${ex("Das Buch liegt auf <b>dem</b> Tisch. || The book is lying on the table. || wo? (location) → Dativ","Ich lege das Buch auf <b>den</b> Tisch. || I put the book on the table. || wohin? (movement) → Akkusativ","Ich fahre mit <b>dem</b> Bus. || I go by bus. || mit + Dativ","Das ist für <b>dich</b>. || That's for you. || für + Akkusativ","Ich komme aus <b>der</b> Türkei. || I come from Turkey. || aus + Dativ; die Türkei → der")}
+<h3>Short forms</h3>
+${tbl(["","short form","example"],[
+ ["an dem","<b>am</b>","am Montag, am Abend, am Bahnhof"],["in dem","<b>im</b>","im Mai, im Sommer, im Kino"],["in das","<b>ins</b>","Ich gehe ins Kino."],["zu dem","<b>zum</b>","zum Arzt, zum Bahnhof"],["zu der","<b>zur</b>","zur Schule, zur Arbeit, zur Uni"],["von dem","<b>vom</b>","vom Bahnhof"],["bei dem","<b>beim</b>","beim Arzt, beim Essen"]])}
+<h3>Time and place</h3>
+${tbl(["","use","example"],[
+ ["am","days, dates, parts of the day","am Freitag, am 3. Mai, am Abend (but: in der Nacht)"],
+ ["im","months, seasons, years","im Juli, im Winter, im Jahr 2026"],
+ ["um","clock time","um 8 Uhr"],
+ ["seit + D","started in the past, still true","Ich wohne seit zwei Jahren hier."],
+ ["vor + D","ago / before","vor drei Tagen · vor dem Essen"],
+ ["nach + D","after","nach dem Unterricht"],
+ ["in + D","in (future)","in einer Woche"],
+ ["von … bis","from … to","von 9 bis 17 Uhr"]])}
+${tbl(["Where to? (wohin)","Where? (wo)"],[
+ ["<b>nach</b> Hause · <b>nach</b> Berlin / Deutschland","<b>zu</b> Hause · <b>in</b> Berlin / Deutschland"],
+ ["<b>zum</b> Arzt · <b>zur</b> Apotheke","<b>beim</b> Arzt · <b>in der</b> Apotheke"],
+ ["<b>in die</b> Stadt · <b>ins</b> Kino","<b>in der</b> Stadt · <b>im</b> Kino"],
+ ["<b>in die</b> Türkei · <b>in die</b> Schweiz","<b>in der</b> Türkei · <b>in der</b> Schweiz"]], false)}`,
+quiz:[["Ich fahre jeden Tag mit ___ Bus.","der Bus","dem"],["Das Geschenk ist ___ dich.","for","für"],["Ich wohne ___ drei Jahren in Korea.","since","seit"],["Ich lege das Handy auf ___ Tisch.","der, wohin?","den"],["Das Handy liegt auf ___ Tisch.","der, wo?","dem"],["Heute Abend gehen wir ___ Kino.","in + das","ins"],["Nach der Arbeit fahre ich ___ Hause.","to home","nach"],["Ich muss morgen ___ Arzt.","zu + dem","zum"],["Der Kurs beginnt ___ Montag ___ 9 Uhr.","two words","am um"]]});
+
+G.push({id:"praesens", grp:"Grammatik", title:"Verben im Präsens", why:"Verb endings are very common gaps: wi___ (wird), ha___ (hat), kön___ (können).",
+html:`
+${tbl(["","machen","fahren (a→ä)","sprechen (e→i)","lesen (e→ie)","sein","haben","werden"],[
+ ["ich","mach<b>e</b>","fahre","spreche","lese","bin","habe","werde"],
+ ["du","mach<b>st</b>","<b>fährst</b>","<b>sprichst</b>","<b>liest</b>","bist","hast","<b>wirst</b>"],
+ ["er/sie/es","mach<b>t</b>","<b>fährt</b>","<b>spricht</b>","<b>liest</b>","ist","hat","<b>wird</b>"],
+ ["wir","mach<b>en</b>","fahren","sprechen","lesen","sind","haben","werden"],
+ ["ihr","mach<b>t</b>","fahrt","sprecht","lest","seid","habt","werdet"],
+ ["sie/Sie","mach<b>en</b>","fahren","sprechen","lesen","sind","haben","werden"]])}
+<p>Stem change only for <b>du</b> and <b>er/sie/es</b>: e→i <span class="de">essen (isst), geben (gibt), helfen (hilft), nehmen (nimmt), treffen (trifft), vergessen (vergisst)</span>; e→ie <span class="de">sehen (sieht)</span>; a→ä <span class="de">schlafen (schläft), tragen (trägt), waschen (wäscht), einladen (lädt ein)</span>; au→äu <span class="de">laufen (läuft)</span>; <span class="de">wissen: ich/er weiß</span>.</p>
+<h3>Modal verbs: ich and er have the same form, with no ending</h3>
+${tbl(["","können","müssen","dürfen","wollen","sollen","mögen","möchten"],[
+ ["ich / er","kann","muss","darf","will","soll","mag","möchte"],
+ ["du","kannst","musst","darfst","willst","sollst","magst","möchtest"],
+ ["wir / sie","können","müssen","dürfen","wollen","sollen","mögen","möchten"],
+ ["ihr","könnt","müsst","dürft","wollt","sollt","mögt","möchtet"]])}
+${ex("Ich <b>kann</b> heute nicht <b>kommen</b>. || I can't come today. || modal verb in position 2, infinitive at the end")}
+<h3>Separable verbs</h3>
+<p>The prefix goes to the end: <span class="de">aufstehen → Ich <b>stehe</b> um 7 Uhr <b>auf</b>.</span> Common: <span class="de">anrufen, ankommen, abfahren, aufräumen, aufmachen, zumachen, einkaufen, einladen, fernsehen, mitkommen, mitbringen, umziehen, aussehen, anfangen</span>. Not separable: be-, ver-, er-, ent-, emp-, ge-, zer- (<span class="de">besuchen, verstehen, erklären</span>).</p>`,
+quiz:[["Er ___ jeden Tag mit dem Rad.","fahren","fährt"],["Du ___ sehr gut Deutsch.","sprechen","sprichst"],["___ du mir morgen helfen?","können","Kannst"],["Sie ___ gern Romane.","lesen","liest"],["Ich ___ die Antwort nicht.","wissen","weiß"],["Hier ___ man nicht rauchen.","dürfen","darf"],["Das Wetter ___ morgen besser.","werden","wird"],["Wann ___ der Film an?","anfangen","fängt"]]});
+
+G.push({id:"vergangenheit", grp:"Grammatik", title:"Perfekt & Präteritum", why:"Past forms appear in every story text: ha___ (hat/habe), wa___ (war), gem___ (gemacht).",
+html:`
+<h3>Perfekt = haben / sein + Partizip II (at the end)</h3>
+${ex("Ich <b>habe</b> gestern Pizza <b>gegessen</b>. || I ate pizza yesterday. || haben + Partizip II at the end","Wir <b>sind</b> nach Berlin <b>gefahren</b>. || We went to Berlin. || movement from A to B → sein")}
+<p><b>sein</b> for movement from A to B and change of state: <span class="de">gehen, fahren, kommen, fliegen, laufen, reisen, aufstehen, einschlafen, aufwachen, sterben, werden, passieren</span>, plus <span class="de">sein</span> and <span class="de">bleiben</span>. Almost everything else takes <b>haben</b>.</p>
+${tbl(["type","rule","examples"],[
+ ["regular","ge- … -t","machen → <b>ge</b>mach<b>t</b>, kaufen → gekauft, arbeiten → gearbeit<b>et</b>"],
+ ["irregular","ge- … -en (stem often changes)","sehen → gesehen, schreiben → geschrieben, trinken → getrunken, finden → gefunden"],
+ ["separable","prefix + ge + stem","aufräumen → auf<b>ge</b>räumt, einkaufen → eingekauft, anrufen → angerufen"],
+ ["be-/ver-/er-/ent-","<b>no</b> ge-","besuchen → besucht, verstehen → verstanden, erzählen → erzählt, bekommen → bekommen"],
+ ["-ieren","<b>no</b> ge-","studieren → studiert, telefonieren → telefoniert, passieren → passiert"]])}
+<h3>Präteritum: learn these forms, they are used even in speech</h3>
+${tbl(["","sein","haben","werden","können","müssen","wollen","es gibt"],[
+ ["ich / er","<b>war</b>","<b>hatte</b>","<b>wurde</b>","<b>konnte</b>","<b>musste</b>","<b>wollte</b>","es <b>gab</b>"],
+ ["du","warst","hattest","wurdest","konntest","musstest","wolltest",""],
+ ["wir / sie","waren","hatten","wurden","konnten","mussten","wollten",""],
+ ["ihr","wart","hattet","wurdet","konntet","musstet","wolltet",""]])}
+<p>Also <span class="de">dürfen → durfte, sollen → sollte, mögen → mochte</span>. In texts (stories, news) you will also see <span class="de">ging, kam, fuhr, sah, gab, fand, stand, saß, lag</span>: see the verb list in the vocabulary part.</p>`,
+quiz:[["Ich habe gestern Pizza ___.","essen","gegessen"],["Wir ___ letztes Jahr nach Seoul geflogen.","haben/sein","sind"],["Hast du die Hausaufgaben schon ___?","machen","gemacht"],["Er hat mich gestern Abend ___.","anrufen","angerufen"],["Gestern ___ ich krank.","sein, Präteritum","war"],["Als Kind ___ ich einen Hund.","haben, Präteritum","hatte"],["Wir ___ lange auf den Bus warten.","müssen, Präteritum","mussten"],["Sie hat in Berlin Medizin ___.","studieren","studiert"],["Ich habe die Frage nicht ___.","verstehen","verstanden"]]});
+
+G.push({id:"satzbau", grp:"Grammatik", title:"Satzbau & Konnektoren", why:"Connectors are the most frequent 'small words' in onSET, and word order tells you which one fits.",
+html:`
+<h3>The verb is always in position 2</h3>
+${ex("Ich <b>gehe</b> heute ins Kino. || I'm going to the cinema today. || verb in position 2","Heute <b>gehe</b> ich ins Kino. || Today I'm going to the cinema. || heute comes first, the verb is still 2nd, the subject moves behind it","Ins Kino <b>gehe</b> ich heute. || I'm going to the CINEMA today. || any part can come first; the verb always stays 2nd")}
+<h3>Sentence bracket: the second verb part goes to the end</h3>
+${ex("Ich <b>möchte</b> morgen ins Kino <b>gehen</b>. || I'd like to go to the cinema tomorrow. || möchte in position 2, gehen at the end","Ich <b>habe</b> gestern Fußball <b>gespielt</b>. || I played football yesterday. || habe in position 2, gespielt at the end","Ich <b>rufe</b> dich morgen <b>an</b>. || I'll call you tomorrow. || separable verb: the prefix an goes to the end")}
+<h3>Three kinds of connectors</h3>
+${tbl(["type","words","word order"],[
+ ["position 0","<b>und, aber, oder, denn, sondern</b>","normal: Ich bleibe zu Hause, <b>denn</b> ich <b>bin</b> krank.<span class=\"trs\">I\'m staying at home because I\'m ill.</span>"],
+ ["adverb (position 1)","<b>deshalb, trotzdem, dann, danach, außerdem, also</b>","verb next: Ich bin krank, <b>deshalb bleibe</b> ich zu Hause.<span class=\"trs\">I\'m ill, so I\'m staying at home.</span>"],
+ ["subordinate","<b>weil, dass, wenn, ob, als, obwohl, damit, bevor, nachdem, während</b> + relative pronouns","verb last: …, <b>weil</b> ich krank <b>bin</b>.<span class=\"trs\">… because I\'m ill.</span>"]])}
+${ex("Ich weiß, <b>dass</b> du Recht <b>hast</b>. || I know that you're right. || dass sends the verb to the end","Ich lerne viel, <b>weil</b> ich die Prüfung bestehen <b>will</b>. || I study a lot because I want to pass the exam. || after weil the conjugated verb (will) is at the very end","…, weil ich früh <b>aufstehe</b>. || … because I get up early. || at the end of the clause the separable verb joins up again")}
+<div class="cols">
+ <div class="box"><h4>als or wenn?</h4><p><b>als</b> = one time in the past: <span class="de">Als ich 10 war, …</span><br><b>wenn</b> = every time, or present/future: <span class="de">Wenn es regnet, …</span></p></div>
+ <div class="box"><h4>aber or sondern?</h4><p><b>sondern</b> only after a negative, to correct: <span class="de">nicht Kaffee, sondern Tee</span>. Otherwise <b>aber</b>.</p></div>
+ <div class="box"><h4>dass or das?</h4><p><b>dass</b> starts a clause (verb last). <b>das</b> is an article or pronoun: <span class="de">das Buch, das ich lese</span>.</p></div>
+</div>
+<h3>zu + infinitive</h3>
+${ex("Ich habe keine Lust, ins Kino <b>zu gehen</b>. || I don't feel like going to the cinema. || Lust haben + zu + infinitive","Es ist wichtig, jeden Tag <b>zu üben</b>. || It's important to practise every day. || es ist wichtig + zu + infinitive","Vergiss nicht, mich <b>anzurufen</b>. || Don't forget to call me. || separable verb: zu goes between prefix and verb")}
+<h3>Relative clauses</h3>
+${ex("Das ist der Mann, <b>der</b> neben mir wohnt. || That's the man who lives next to me. || he lives there → Nominativ der","Das ist der Mann, <b>den</b> ich kenne. || That's the man I know. || I know him → Akkusativ den","Das ist die Frau, <b>der</b> ich helfe. || That's the woman I help. || helfen + Dativ; die Frau → der","Die Leute, <b>die</b> hier arbeiten, sind nett. || The people who work here are nice. || plural, Nominativ → die")}`,
+quiz:[["Ich lerne Deutsch, ___ ich in Deutschland studieren möchte.","because, verb last","weil"],["Ich glaube, ___ er heute nicht kommt.","that","dass"],["Es regnet, ___ bleiben wir zu Hause.","so, verb next","deshalb|daher|darum|also"],["___ ich ein Kind war, wohnte ich in Taschkent.","when, once in the past","Als"],["Ich weiß nicht, ___ sie morgen Zeit hat.","whether","ob"],["Ich trinke keinen Kaffee, ___ Tee.","but rather","sondern"],["Es ist nicht leicht, jeden Tag früh ___.","aufstehen","aufzustehen"],["Das ist das Buch, ___ ich gerade lese.","relative, Akk","das"],["Ich bin müde, ___ ich gehe noch zum Sport.","but","aber|doch"]]});
+
+G.push({id:"adjektiv", grp:"Grammatik", title:"Adjektivendungen & Vergleich", why:"The last letters of adjectives are typical gaps: gut___, neu___, klein___.",
+html:`
+<h3>After der / die / das (and dieser, jeder, welcher, alle)</h3>
+${tbl(["","<span class='m'>masc.</span>","<span class='f'>fem.</span>","<span class='n'>neut.</span>","<span class='p'>plural</span>"],[
+ ["Nom","der gut<b>e</b> Mann","die gut<b>e</b> Frau","das gut<b>e</b> Kind","die gut<b>en</b> Leute"],
+ ["Akk","den gut<b>en</b> Mann","die gut<b>e</b> Frau","das gut<b>e</b> Kind","die gut<b>en</b> Leute"],
+ ["Dat","dem gut<b>en</b> Mann","der gut<b>en</b> Frau","dem gut<b>en</b> Kind","den gut<b>en</b> Leuten"]])}
+<p><b>Rule:</b> -e in the five singular boxes of Nom (and Akk fem./neut.), -en everywhere else.</p>
+<h3>After ein / kein / mein …</h3>
+${tbl(["","<span class='m'>masc.</span>","<span class='f'>fem.</span>","<span class='n'>neut.</span>","<span class='p'>plural</span>"],[
+ ["Nom","ein gut<b>er</b> Mann","eine gut<b>e</b> Frau","ein gut<b>es</b> Kind","keine gut<b>en</b> Leute"],
+ ["Akk","einen gut<b>en</b> Mann","eine gut<b>e</b> Frau","ein gut<b>es</b> Kind","keine gut<b>en</b> Leute"],
+ ["Dat","einem gut<b>en</b> Mann","einer gut<b>en</b> Frau","einem gut<b>en</b> Kind","keinen gut<b>en</b> Leuten"]])}
+<p><b>Rule:</b> where <span class="de">ein</span> has no ending, the adjective shows the gender: <span class="de">ein gut<b>er</b> (der)</span>, <span class="de">ein gut<b>es</b> (das)</span>.</p>
+<h3>No article</h3>
+<p>The adjective takes the article's ending: <span class="de">gut<b>er</b> Kaffee, frisch<b>e</b> Milch, schön<b>es</b> Wetter, neu<b>e</b> Freunde</span>; Dativ: <span class="de">mit heiß<b>em</b> Wasser, mit gut<b>en</b> Freunden</span>; Akk masc.: <span class="de">Ich trinke heiß<b>en</b> Tee</span>.</p>
+<h3>Comparison</h3>
+${tbl(["","Komparativ","Superlativ"],[
+ ["klein","kleiner","am kleinsten"],["alt","<b>ä</b>lter","am <b>ä</b>ltesten"],["groß","gr<b>ö</b>ßer","am gr<b>ö</b>ßten"],["jung","j<b>ü</b>nger","am j<b>ü</b>ngsten"],["gut","<b>besser</b>","am <b>besten</b>"],["viel","<b>mehr</b>","am <b>meisten</b>"],["gern","<b>lieber</b>","am <b>liebsten</b>"],["hoch","<b>höher</b>","am <b>höchsten</b>"]])}
+${ex("Berlin ist größer <b>als</b> München. || Berlin is bigger than Munich. || comparative + als","Ich bin so groß <b>wie</b> mein Bruder. || I'm as tall as my brother. || so … wie = as … as")}`,
+quiz:[["Ich habe einen neu___ Laptop.","ending only","en"],["Das ist ein schön___ Haus.","ending only","es"],["Ich spiele mit dem klein___ Kind.","ending only","en"],["Der alt___ Mann wohnt neben mir.","ending only","e"],["Im Winter trinke ich gern heiß___ Tee.","ending only","en"],["Seoul ist ___ als Jeonju.","groß","größer"],["Ich trinke ___ Tee als Kaffee.","gern","lieber"],["Das ist der ___ Film des Jahres.","gut, superlative","beste"]]});
+
+G.push({id:"nomen", grp:"Grammatik", title:"Nomen: Genus & Plural", why:"Noun gaps need the right ending and plural, and the gender decides the article gap next to it.",
+html:`
+<h3>Gender from the ending (reliable rules)</h3>
+<div class="cols">
+ <div class="box"><h4 class="f">die</h4><p><span class="de">-ung, -heit, -keit, -schaft, -ion, -tät, -ie, -ik, -ei</span> and most nouns in <span class="de">-e</span>: die Zeitung, die Freiheit, die Möglichkeit, die Information, die Universität, die Lampe</p></div>
+ <div class="box"><h4 class="m">der</h4><p>People and machines in <span class="de">-er</span> (der Lehrer, der Computer), <span class="de">-ismus, -ling</span>, days, months, seasons, weather (der Regen, der Schnee)</p></div>
+ <div class="box"><h4 class="n">das</h4><p><span class="de">-chen, -lein, -um, -ment</span>, verbs used as nouns (das Essen, das Lernen), most <span class="de">Ge-</span> words (das Gemüse, das Getränk)</p></div>
+</div>
+<p><b>Compounds:</b> the last word decides: <span class="de">das Haus + <span class="f">die</span> Tür = <span class="f">die</span> Haustür</span>; <span class="de">die Arbeit + <span class="m">der</span> Platz = <span class="m">der</span> Arbeitsplatz</span>.</p>
+<h3>Plural patterns</h3>
+${tbl(["pattern","examples"],[
+ ["-e","der Tag → Tag<b>e</b>, der Freund → Freund<b>e</b>, das Jahr → Jahr<b>e</b>"],
+ ["¨-e","die Stadt → St<b>ä</b>dt<b>e</b>, der Zug → Z<b>ü</b>g<b>e</b>, der Stuhl → St<b>ü</b>hl<b>e</b>"],
+ ["-er / ¨-er","das Kind → Kind<b>er</b>, das Buch → B<b>ü</b>ch<b>er</b>, das Haus → H<b>ä</b>us<b>er</b>"],
+ ["-(e)n","die Frau → Frau<b>en</b>, die Schule → Schule<b>n</b>, der Student → Student<b>en</b>"],
+ ["-s","das Auto → Auto<b>s</b>, das Handy → Handy<b>s</b>, das Hotel → Hotel<b>s</b>"],
+ ["- / ¨","der Lehrer → Lehrer, das Zimmer → Zimmer, der Vater → V<b>ä</b>ter"]])}
+<p><b>Dativ plural adds -n:</b> <span class="de">mit den Kinder<b>n</b>, mit Freunde<b>n</b></span> (not after -s or -n).</p>
+<p><b>n-nouns</b> add -(e)n in every case except Nom sg.: <span class="de">der Student → den/dem Student<b>en</b>, der Kollege → den Kollege<b>n</b>, der Mensch → den Mensch<b>en</b>, der Herr → Herr<b>n</b>, der Junge, der Name, der Nachbar</span>.</p>
+${tip("Spelling","Every noun starts with a capital letter, including nominalised verbs and adjectives: das Essen, beim Lernen, etwas Neues. In the C-test the capital is already given, which also tells you the word is a noun.")}`,
+quiz:[["___ Wohnung (der / die / das)","article","die"],["___ Mädchen","article","das"],["___ Zeitung","article","die"],["___ Computer","article","der"],["___ Museum","article","das"],["___ Freiheit","article","die"],["das Buch → die ___","plural","Bücher"],["der Stuhl → die ___","plural","Stühle"],["Ich spreche mit dem ___.","der Student","Studenten"]]});
+
+G.push({id:"mehr", grp:"Grammatik", title:"Weitere A2-Strukturen", why:"Less frequent, but each one turns up in onSET texts.",
+html:`
+<div class="cols">
+ <div class="box"><h4>Konjunktiv II (polite, wishes)</h4>${ex("Ich <b>hätte</b> gern einen Kaffee. || I'd like a coffee. || hätte gern = polite I'd like","<b>Könnten</b> Sie mir helfen? || Could you help me? || polite request","Ich <b>würde</b> gern reisen. || I'd like to travel. || würde + infinitive","Das <b>wäre</b> schön. || That would be nice. || wäre = would be")}</div>
+ <div class="box"><h4>Imperativ</h4>${ex("Komm! / Kommt! / Kommen Sie! || Come! (to du / ihr / Sie) || du-form: no -st and no du","Sei ruhig! || Be quiet! || sein → sei","Ruf mich an! || Call me! || separable prefix at the end","Nimm das! || Take that! || e→i verbs keep the change: du nimmst → nimm")}</div>
+ <div class="box"><h4>Futur</h4>${ex("Ich <b>werde</b> morgen <b>lernen</b>. || I will study tomorrow. || werden in position 2 + infinitive at the end")}</div>
+ <div class="box"><h4>Passiv (recognise it)</h4>${ex("Das Haus <b>wird</b> gebaut. || The house is being built. || werden + Partizip II","Es <b>wurde</b> 1990 gebaut. || It was built in 1990. || past: wurde + Partizip II")}</div>
+ <div class="box"><h4>nicht or kein?</h4>${ex("Ich habe <b>keine</b> Zeit. || I have no time. || kein replaces ein or no article","Ich komme <b>nicht</b>. || I'm not coming. || nicht for verbs, adjectives and everything else")}</div>
+ <div class="box"><h4>es gibt + Akk, man</h4>${ex("Es gibt hier einen Park. || There is a park here. || es gibt + Akkusativ → einen","Man kann hier gut essen. || You can eat well here. || man + er-form of the verb")}</div>
+ <div class="box"><h4>Verbs with prepositions</h4><p class="de">warten auf + A <small>(wait for)</small> · denken an + A <small>(think of)</small> · sich freuen auf + A <small>(look forward to)</small> / über + A <small>(be happy about)</small> · sich interessieren für + A <small>(be interested in)</small> · sprechen mit + D <small>(talk with)</small> / über + A <small>(talk about)</small> · Angst haben vor + D <small>(be afraid of)</small> · teilnehmen an + D <small>(take part in)</small></p><p style="margin-top:6px">Full list with examples: topic 15.</p></div>
+ <div class="box"><h4>Question words</h4><p class="de">wer, wen, wem, was, wo, wohin, woher, wann, warum, wie, wie viel, welcher</p></div>
+</div>`,
+quiz:[["___ Sie mir bitte helfen?","können, polite","Könnten"],["Ich ___ gern einen Tee.","haben, polite","hätte"],["Die Brücke ___ 1990 gebaut.","passive, past","wurde"],["Ich habe heute ___ Zeit.","no time","keine"],["___ es hier in der Nähe einen Supermarkt?","es ___","Gibt"],["Ich warte ___ den Bus.","preposition","auf"],["Ich interessiere mich ___ Musik.","preposition","für"],["Ich ___ nächstes Jahr in Deutschland studieren.","werden, future","werde"]]});
+
+/* ================= VOCABULARY ================= */
+const SMALL = {
+ "Connectors":[["und","and"],["oder","or"],["aber","but"],["denn","because (pos. 0)"],["sondern","but rather"],["weil","because"],["dass","that"],["wenn","if / whenever"],["als","when (past) / than"],["ob","whether"],["obwohl","although"],["damit","so that"],["bevor","before"],["nachdem","after"],["während","while / during"],["bis","until"],["deshalb","therefore"],["trotzdem","nevertheless"],["außerdem","besides"],["also","so / therefore"]],
+ "Time & frequency":[["jetzt","now"],["heute","today"],["gestern","yesterday"],["morgen","tomorrow"],["bald","soon"],["schon","already"],["noch","still / yet"],["immer","always"],["nie","never"],["oft","often"],["manchmal","sometimes"],["selten","rarely"],["meistens","mostly"],["zuerst","first"],["dann","then"],["danach","after that"],["später","later"],["früher","earlier / in the past"],["endlich","finally"],["sofort","immediately"],["gerade","right now / just"],["wieder","again"],["lange","for a long time"],["seit","since"]],
+ "Degree & focus":[["sehr","very"],["ganz","quite / whole"],["ziemlich","rather"],["zu","too"],["nur","only"],["auch","also"],["sogar","even"],["fast","almost"],["etwa","about"],["genug","enough"],["mehr","more"],["viel","much"],["wenig","little"],["besonders","especially"],["genau","exactly"],["wirklich","really"],["leider","unfortunately"],["vielleicht","maybe"],["natürlich","of course"],["eigentlich","actually"],["allerdings","however"],["jedoch","however"]],
+ "Place":[["hier","here"],["da","there"],["dort","there"],["oben","above"],["unten","below"],["links","left"],["rechts","right"],["vorne","at the front"],["hinten","at the back"],["draußen","outside"],["überall","everywhere"],["weit","far"],["nah","near"]],
+ "Quantity & pronouns":[["nicht","not"],["kein","no / not a"],["nichts","nothing"],["niemand","nobody"],["etwas","something"],["alles","everything"],["alle","all"],["jeder","every"],["man","one / people"],["viele","many"],["einige","some"],["beide","both"],["andere","other"],["selbst","oneself / even"]]
+};
+
+/* B1 irregular verbs grouped by vowel pattern. inf|er-form|Präteritum|Perfekt|English|1 = top priority */
+const VGROUPS = [
+ {p:"ei → ie → ie", ex:"bleiben – blieb – geblieben", v:`bleiben|bleibt|blieb|ist geblieben|to stay|1
+schreiben|schreibt|schrieb|hat geschrieben|to write|1
+beschreiben|beschreibt|beschrieb|hat beschrieben|to describe|1
+entscheiden|entscheidet|entschied|hat entschieden|to decide|1
+steigen|steigt|stieg|ist gestiegen|to climb, to rise|1
+scheinen|scheint|schien|hat geschienen|to shine, to seem|1
+vermeiden|vermeidet|vermied|hat vermieden|to avoid|1
+treiben|treibt|trieb|hat getrieben|to drive, to do (sport)|0
+leihen|leiht|lieh|hat geliehen|to lend|0
+schweigen|schweigt|schwieg|hat geschwiegen|to be silent|0
+schreien|schreit|schrie|hat geschrien|to scream|0
+beweisen|beweist|bewies|hat bewiesen|to prove|0`},
+ {p:"ei → i → i", ex:"schneiden – schnitt – geschnitten", v:`vergleichen|vergleicht|verglich|hat verglichen|to compare|1
+schneiden|schneidet|schnitt|hat geschnitten|to cut|0
+streiten|streitet|stritt|hat gestritten|to argue|0
+leiden|leidet|litt|hat gelitten|to suffer|0
+greifen|greift|griff|hat gegriffen|to grab|0
+begreifen|begreift|begriff|hat begriffen|to understand|0`},
+ {p:"ie → o → o", ex:"fliegen – flog – geflogen", v:`fliegen|fliegt|flog|ist geflogen|to fly|1
+ziehen|zieht|zog|hat gezogen|to pull|1
+umziehen|zieht um|zog um|ist umgezogen|to move house|1
+verlieren|verliert|verlor|hat verloren|to lose|1
+bieten|bietet|bot|hat geboten|to offer|1
+anbieten|bietet an|bot an|hat angeboten|to offer|1
+verbieten|verbietet|verbot|hat verboten|to forbid|1
+schließen|schließt|schloss|hat geschlossen|to close|1
+genießen|genießt|genoss|hat genossen|to enjoy|0
+fließen|fließt|floss|ist geflossen|to flow|0
+frieren|friert|fror|hat gefroren|to freeze|0
+riechen|riecht|roch|hat gerochen|to smell|0
+schieben|schiebt|schob|hat geschoben|to push|0
+lügen|lügt|log|hat gelogen|to lie (not tell the truth)|0`},
+ {p:"i → a → u", ex:"finden – fand – gefunden", v:`finden|findet|fand|hat gefunden|to find|1
+trinken|trinkt|trank|hat getrunken|to drink|1
+verschwinden|verschwindet|verschwand|ist verschwunden|to disappear|1
+gelingen|gelingt|gelang|ist gelungen|to succeed (es gelingt mir)|1
+singen|singt|sang|hat gesungen|to sing|0
+springen|springt|sprang|ist gesprungen|to jump|0
+sinken|sinkt|sank|ist gesunken|to sink, to fall|0
+binden|bindet|band|hat gebunden|to tie|0
+zwingen|zwingt|zwang|hat gezwungen|to force|0`},
+ {p:"i → a → o", ex:"beginnen – begann – begonnen", v:`beginnen|beginnt|begann|hat begonnen|to begin|1
+gewinnen|gewinnt|gewann|hat gewonnen|to win|1
+schwimmen|schwimmt|schwamm|ist geschwommen|to swim|0`},
+ {p:"e → a → o (e→i in present)", ex:"helfen – hilft – half – geholfen", v:`helfen|hilft|half|hat geholfen|to help|1
+sprechen|spricht|sprach|hat gesprochen|to speak|1
+nehmen|nimmt|nahm|hat genommen|to take|1
+teilnehmen|nimmt teil|nahm teil|hat teilgenommen|to take part|1
+treffen|trifft|traf|hat getroffen|to meet|1
+sterben|stirbt|starb|ist gestorben|to die|1
+empfehlen|empfiehlt|empfahl|hat empfohlen|to recommend|1
+gelten|gilt|galt|hat gegolten|to be valid, to count as|1
+werfen|wirft|warf|hat geworfen|to throw|0
+brechen|bricht|brach|hat gebrochen|to break|0
+stehlen|stiehlt|stahl|hat gestohlen|to steal|0
+erschrecken|erschrickt|erschrak|ist erschrocken|to get a fright|0`},
+ {p:"e → a → e", ex:"geben – gab – gegeben", v:`geben|gibt|gab|hat gegeben|to give|1
+essen|isst|aß|hat gegessen|to eat|1
+sehen|sieht|sah|hat gesehen|to see|1
+lesen|liest|las|hat gelesen|to read|1
+vergessen|vergisst|vergaß|hat vergessen|to forget|1
+geschehen|geschieht|geschah|ist geschehen|to happen|1
+messen|misst|maß|hat gemessen|to measure|0
+treten|tritt|trat|ist getreten|to step|0`},
+ {p:"i / ie → a → e", ex:"liegen – lag – gelegen", v:`liegen|liegt|lag|hat gelegen|to lie (be lying)|1
+sitzen|sitzt|saß|hat gesessen|to sit|1
+bitten|bittet|bat|hat gebeten|to ask (for)|1
+besitzen|besitzt|besaß|hat besessen|to own|0`},
+ {p:"a → u → a (a→ä in present)", ex:"fahren – fährt – fuhr – gefahren", v:`fahren|fährt|fuhr|ist gefahren|to drive, to go|1
+erfahren|erfährt|erfuhr|hat erfahren|to find out|1
+tragen|trägt|trug|hat getragen|to carry, to wear|1
+einladen|lädt ein|lud ein|hat eingeladen|to invite|1
+wachsen|wächst|wuchs|ist gewachsen|to grow|1
+vorschlagen|schlägt vor|schlug vor|hat vorgeschlagen|to suggest|1
+schlagen|schlägt|schlug|hat geschlagen|to hit|0
+waschen|wäscht|wusch|hat gewaschen|to wash|0`},
+ {p:"a / au → ie / i → a / au", ex:"schlafen – schlief – geschlafen", v:`schlafen|schläft|schlief|hat geschlafen|to sleep|1
+fallen|fällt|fiel|ist gefallen|to fall|1
+gefallen|gefällt|gefiel|hat gefallen|to please (es gefällt mir)|1
+halten|hält|hielt|hat gehalten|to hold, to stop|1
+erhalten|erhält|erhielt|hat erhalten|to receive|1
+enthalten|enthält|enthielt|hat enthalten|to contain|1
+lassen|lässt|ließ|hat gelassen|to let, to leave|1
+verlassen|verlässt|verließ|hat verlassen|to leave (a place)|1
+laufen|läuft|lief|ist gelaufen|to run, to walk|1
+anfangen|fängt an|fing an|hat angefangen|to start|1
+raten|rät|riet|hat geraten|to advise, to guess|0
+hängen|hängt|hing|hat gehangen|to hang (be hanging)|0`},
+ {p:"own patterns: learn by heart", ex:"gehen – ging – gegangen", v:`sein|ist|war|ist gewesen|to be|1
+haben|hat|hatte|hat gehabt|to have|1
+werden|wird|wurde|ist geworden|to become|1
+gehen|geht|ging|ist gegangen|to go|1
+kommen|kommt|kam|ist gekommen|to come|1
+bekommen|bekommt|bekam|hat bekommen|to receive|1
+ankommen|kommt an|kam an|ist angekommen|to arrive|1
+stehen|steht|stand|hat gestanden|to stand|1
+verstehen|versteht|verstand|hat verstanden|to understand|1
+aufstehen|steht auf|stand auf|ist aufgestanden|to get up|1
+bestehen|besteht|bestand|hat bestanden|to pass (an exam)|1
+entstehen|entsteht|entstand|ist entstanden|to come into being|1
+tun|tut|tat|hat getan|to do|1
+rufen|ruft|rief|hat gerufen|to call|1
+anrufen|ruft an|rief an|hat angerufen|to phone|1
+heißen|heißt|hieß|hat geheißen|to be called|1
+stoßen|stößt|stieß|hat gestoßen|to push, to bump|0`},
+ {p:"mixed verbs: -te in the past, but the stem changes", ex:"bringen – brachte – gebracht", v:`bringen|bringt|brachte|hat gebracht|to bring|1
+verbringen|verbringt|verbrachte|hat verbracht|to spend (time)|1
+denken|denkt|dachte|hat gedacht|to think|1
+kennen|kennt|kannte|hat gekannt|to know (a person)|1
+nennen|nennt|nannte|hat genannt|to name|1
+wissen|weiß|wusste|hat gewusst|to know (a fact)|1
+rennen|rennt|rannte|ist gerannt|to run|0
+brennen|brennt|brannte|hat gebrannt|to burn|0`},
+ {p:"modal verbs: Präteritum has no umlaut", ex:"können – konnte – gekonnt", v:`können|kann|konnte|hat gekonnt|can|1
+müssen|muss|musste|hat gemusst|must|1
+dürfen|darf|durfte|hat gedurft|may|1
+wollen|will|wollte|hat gewollt|to want|1
+sollen|soll|sollte|hat gesollt|should|1
+mögen|mag|mochte|hat gemocht|to like|1`}
+];
+const VERBS_ALL = [];
+VGROUPS.forEach((g,gi)=>{ g.list = g.v.trim().split("\n").map(l=>{ const [inf,er,prt,perf,en,st]=l.split("|"); const o={inf,er,prt,perf,en,star:st==="1",g:gi}; VERBS_ALL.push(o); return o; }); });
+
+const NOUNS = {
+ "Familie & Menschen":"der Vater|¨|father;die Mutter|¨|mother;die Eltern|Pl.|parents;der Bruder|¨|brother;die Schwester|-n|sister;das Kind|-er|child;der Sohn|¨-e|son;die Tochter|¨|daughter;der Mann|¨-er|man, husband;die Frau|-en|woman, wife;der Freund|-e|friend;die Freundin|-nen|friend (f.);der Nachbar|-n|neighbour;der Mensch|-en|person;die Leute|Pl.|people",
+ "Wohnen":"die Wohnung|-en|flat;das Haus|¨-er|house;das Zimmer|-|room;die Küche|-n|kitchen;das Bad|¨-er|bathroom;der Balkon|-e|balcony;die Miete|-n|rent;der Tisch|-e|table;der Stuhl|¨-e|chair;das Bett|-en|bed;der Schrank|¨-e|cupboard;die Tür|-en|door;das Fenster|-|window;der Schlüssel|-|key;die Treppe|-n|stairs",
+ "Essen & Trinken":"das Essen|-|food, meal;das Brot|-e|bread;das Brötchen|-|bread roll;der Käse|-|cheese;die Milch|–|milk;das Ei|-er|egg;das Fleisch|–|meat;der Fisch|-e|fish;das Obst|–|fruit;das Gemüse|-|vegetables;der Apfel|¨|apple;die Kartoffel|-n|potato;der Reis|–|rice;das Wasser|–|water;der Kaffee|-s|coffee;der Tee|-s|tea;der Saft|¨-e|juice;das Frühstück|-e|breakfast",
+ "Stadt & Verkehr":"die Stadt|¨-e|city;die Straße|-n|street;der Platz|¨-e|square, place;der Bahnhof|¨-e|station;der Flughafen|¨|airport;die Haltestelle|-n|stop;der Bus|-se|bus;der Zug|¨-e|train;das Auto|-s|car;das Fahrrad|¨-er|bicycle;die Fahrkarte|-n|ticket;die Ampel|-n|traffic light;die Bank|-en|bank;die Post|–|post office;das Geschäft|-e|shop;der Supermarkt|¨-e|supermarket;der Stau|-s|traffic jam",
+ "Arbeit & Lernen":"die Arbeit|-en|work;der Beruf|-e|job, profession;die Firma|Firmen|company;der Chef|-s|boss;der Kollege|-n|colleague;die Stelle|-n|position;das Gehalt|¨-er|salary;der Termin|-e|appointment;die Schule|-n|school;die Universität|-en|university;der Kurs|-e|course;die Prüfung|-en|exam;die Hausaufgabe|-n|homework;das Buch|¨-er|book;der Lehrer|-|teacher;die Vorlesung|-en|lecture",
+ "Gesundheit & Körper":"der Arzt|¨-e|doctor;die Ärztin|-nen|doctor (f.);das Krankenhaus|¨-er|hospital;die Apotheke|-n|pharmacy;das Medikament|-e|medicine;der Kopf|¨-e|head;der Bauch|¨-e|stomach;der Rücken|-|back;das Bein|-e|leg;der Arm|-e|arm;die Hand|¨-e|hand;der Fuß|¨-e|foot;das Auge|-n|eye;der Zahn|¨-e|tooth;die Schmerzen|Pl.|pain;das Fieber|–|fever;die Erkältung|-en|cold",
+ "Freizeit & Reisen":"das Hobby|-s|hobby;der Sport|–|sport;das Spiel|-e|game;der Verein|-e|club;die Musik|–|music;der Film|-e|film;das Kino|-s|cinema;das Konzert|-e|concert;das Museum|Museen|museum;die Party|-s|party;das Fest|-e|festival;der Urlaub|-e|holiday;die Reise|-n|trip;das Hotel|-s|hotel;der Koffer|-|suitcase",
+ "Zeit":"die Zeit|-en|time;die Uhr|-en|clock, o'clock;die Stunde|-n|hour;die Minute|-n|minute;der Tag|-e|day;die Woche|-n|week;der Monat|-e|month;das Jahr|-e|year;der Morgen|-|morning;der Nachmittag|-e|afternoon;der Abend|-e|evening;die Nacht|¨-e|night;das Wochenende|-n|weekend;der Geburtstag|-e|birthday",
+ "Einkaufen & Kleidung":"das Geld|–|money;der Preis|-e|price;die Kasse|-n|checkout;die Tasche|-n|bag;die Kleidung|–|clothes;die Hose|-n|trousers;das Hemd|-en|shirt;die Jacke|-n|jacket;der Mantel|¨|coat;das Kleid|-er|dress;der Schuh|-e|shoe;die Größe|-n|size;das Angebot|-e|offer",
+ "Wetter & Natur":"das Wetter|–|weather;die Sonne|–|sun;der Regen|–|rain;der Schnee|–|snow;der Wind|-e|wind;die Wolke|-n|cloud;der Frühling|-e|spring;der Sommer|-|summer;der Herbst|-e|autumn;der Winter|-|winter;der Baum|¨-e|tree;die Blume|-n|flower;der See|-n|lake;das Meer|-e|sea;der Berg|-e|mountain;der Wald|¨-er|forest;die Umwelt|–|environment",
+ "Kommunikation & Medien":"das Handy|-s|mobile phone;der Computer|-|computer;das Internet|–|internet;die E-Mail|-s|email;die Nachricht|-en|message, news;der Brief|-e|letter;die Zeitung|-en|newspaper;das Telefon|-e|telephone;die Adresse|-n|address;die Frage|-n|question;die Antwort|-en|answer;die Information|-en|information;die Sprache|-n|language"
+};
+
+const ADJ_EN = {"groß":"big","klein":"small","alt":"old","jung / neu":"young / new","gut":"good","schlecht":"bad","schnell":"fast","langsam":"slow","teuer":"expensive","billig / günstig":"cheap / good value","schön":"beautiful","hässlich":"ugly","leicht":"easy, light","schwer":"difficult, heavy","einfach":"simple","schwierig":"difficult","lang":"long","kurz":"short","hoch":"high","niedrig":"low","warm / heiß":"warm / hot","kalt":"cold","laut":"loud","leise / ruhig":"quiet / calm","voll":"full","leer":"empty","früh":"early","spät":"late","richtig":"right","falsch":"wrong","gesund":"healthy","krank":"ill","glücklich":"happy","traurig":"sad","offen":"open","geschlossen":"closed","hell":"bright","dunkel":"dark","nah":"near","weit":"far","wichtig":"important","unwichtig":"unimportant","interessant":"interesting","langweilig":"boring","freundlich":"friendly","unfreundlich":"unfriendly","sauber":"clean","schmutzig":"dirty","stark":"strong","schwach":"weak","müde":"tired","wach":"awake","satt":"full (after eating)","hungrig":"hungry","frei":"free","besetzt":"taken, occupied","bequem":"comfortable","unbequem":"uncomfortable","pünktlich":"on time","zu spät":"too late"};
+const ADJ = [["groß","klein"],["alt","jung / neu"],["gut","schlecht"],["schnell","langsam"],["teuer","billig / günstig"],["schön","hässlich"],["leicht","schwer"],["einfach","schwierig"],["lang","kurz"],["hoch","niedrig"],["warm / heiß","kalt"],["laut","leise / ruhig"],["voll","leer"],["früh","spät"],["richtig","falsch"],["gesund","krank"],["glücklich","traurig"],["offen","geschlossen"],["hell","dunkel"],["nah","weit"],["wichtig","unwichtig"],["interessant","langweilig"],["freundlich","unfreundlich"],["sauber","schmutzig"],["stark","schwach"],["müde","wach"],["satt","hungrig"],["frei","besetzt"],["bequem","unbequem"],["pünktlich","zu spät"]];
+
+/* ================= B1 GRAMMAR ================= */
+const B = [];
+
+B.push({id:"b1prt", title:"Präteritum & Plusquamperfekt", why:"Stories and news in onSET are written in the Präteritum. Regular verbs follow one simple pattern.",
+html:`
+<h3>Präteritum of regular verbs: stem + -te</h3>
+${tbl(["","machen","arbeiten (-t/-d stem → -ete)","wohnen"],[
+ ["ich","mach<b>te</b>","arbeit<b>ete</b>","wohn<b>te</b>"],["du","mach<b>test</b>","arbeit<b>etest</b>","wohn<b>test</b>"],["er/sie/es","mach<b>te</b>","arbeit<b>ete</b>","wohn<b>te</b>"],["wir","mach<b>ten</b>","arbeit<b>eten</b>","wohn<b>ten</b>"],["ihr","mach<b>tet</b>","arbeit<b>etet</b>","wohn<b>tet</b>"],["sie/Sie","mach<b>ten</b>","arbeit<b>eten</b>","wohn<b>ten</b>"]])}
+<p>ich and er have the same form in the Präteritum (no -t for er). Irregular verbs change the vowel instead: see the B1 verb list (topic 26).</p>
+<h3>Plusquamperfekt: the past before the past</h3>
+<p><b>hatte / war + Partizip II.</b> Use it for something that happened before another past event, very often after <span class="de">nachdem</span>.</p>
+${ex("<b>Nachdem</b> ich gegessen <b>hatte</b>, ging ich spazieren. || After I had eaten, I went for a walk. || eating came first → Plusquamperfekt (hatte gegessen)","Als wir ankamen, <b>war</b> der Zug schon <b>abgefahren</b>. || When we arrived, the train had already left. || the train left before we arrived → war abgefahren","Sie <b>hatte</b> sich gut auf die Prüfung <b>vorbereitet</b>, deshalb bestand sie. || She had prepared well for the exam, so she passed. || preparing happened before passing → hatte vorbereitet")}`,
+quiz:[["Gestern ___ ich bis 20 Uhr.","arbeiten, Präteritum","arbeitete"],["Wir ___ früher in Taschkent.","wohnen, Präteritum","wohnten"],["Er ___ sich ein neues Fahrrad.","kaufen, Präteritum","kaufte"],["Du ___ sehr lange auf den Bus.","warten, Präteritum","wartetest"],["Nachdem ich gegessen ___, ging ich spazieren.","Plusquamperfekt","hatte"],["Als wir ankamen, ___ der Film schon angefangen.","Plusquamperfekt","hatte"],["Sie ___ schon nach Hause gegangen, als ich anrief.","Plusquamperfekt","war"],["Als Kind ___ ich jeden Tag Fußball.","spielen, Präteritum","spielte"]]});
+
+B.push({id:"b1passiv", title:"Passiv", why:"Texts about society, history and science use the passive all the time: wi___ gebaut, wu___ erfunden.",
+html:`
+<p><b>werden + Partizip II</b>. The action is important, not who does it.</p>
+${tbl(["tense","form","example"],[
+ ["Präsens","wird / werden + PII","Das Haus <b>wird</b> gebaut.<span class=\"trs\">The house is being built.</span>"],
+ ["Präteritum","wurde / wurden + PII","Das Haus <b>wurde</b> 1990 gebaut.<span class=\"trs\">The house was built in 1990.</span>"],
+ ["Perfekt","ist + PII + <b>worden</b>","Das Haus <b>ist</b> 1990 gebaut <b>worden</b>.<span class=\"trs\">The house was built in 1990 (spoken past).</span>"],
+ ["with a modal","modal + PII + werden","Das Haus <b>muss</b> renoviert <b>werden</b>.<span class=\"trs\">The house must be renovated.</span>"]])}
+${ex("Aktiv: <b>Man</b> repariert das Auto. || Active: Someone is repairing the car. || who does it is not important → man","Passiv: Das Auto <b>wird repariert</b>. || Passive: The car is being repaired. || werden + Partizip II; the car is now the subject","Das Bild wurde <b>von einem</b> berühmten Maler gemalt. || The picture was painted by a famous painter. || who did it → von + Dativ")}
+${tip("Don't mix them up","<span class='de'>werden</span> + adjective/noun = become (Er <b>wird</b> Arzt). <span class='de'>werden</span> + infinitive = future (Ich <b>werde</b> kommen). <span class='de'>werden</span> + Partizip II = passive (Es <b>wird</b> gemacht).")}`,
+quiz:[["In Deutschland ___ viel Brot gegessen.","Präsens","wird"],["Das Museum ___ im Jahr 1900 gebaut.","Präteritum","wurde"],["Die Hausaufgaben müssen heute gemacht ___.","with modal","werden"],["Die Pakete ___ morgen gebracht.","Präsens, plural","werden"],["Das Fenster ist gestern repariert ___.","Perfekt","worden"],["Hier ___ nicht geraucht werden.","not allowed","darf"],["Der Dieb wurde ___ der Polizei gefunden.","by","von"],["Das Telefon ___ 1876 erfunden.","Präteritum","wurde"]]});
+
+B.push({id:"b1konj", title:"Konjunktiv II", why:"Wishes, advice, polite requests and 'what if' sentences. Short forms like hä___, wä___, kön___ are common gaps.",
+html:`
+${tbl(["","haben","sein","können","werden (+ infinitive)"],[
+ ["ich / er","<b>hätte</b>","<b>wäre</b>","<b>könnte</b>","<b>würde</b> … gehen"],["du","hättest","wär(e)st","könntest","würdest"],["wir / sie","hätten","wären","könnten","würden"],["ihr","hättet","wär(e)t","könntet","würdet"]])}
+<p>Also: <span class="de">müsste, dürfte, sollte, wüsste, gäbe, käme</span>. For most other verbs use <b>würde + infinitive</b>.</p>
+<div class="cols">
+ <div class="box"><h4>Polite requests</h4>${ex("<b>Könnten</b> Sie mir helfen? || Could you help me?","Ich <b>hätte</b> gern ein Wasser. || I'd like a water.","<b>Würden</b> Sie bitte das Fenster schließen? || Would you please close the window?")}</div>
+ <div class="box"><h4>Wishes</h4>${ex("Wenn ich doch mehr Zeit <b>hätte</b>! || If only I had more time! || a wish that is not true now","Ich <b>wäre</b> gern am Meer. || I'd love to be at the sea.")}</div>
+ <div class="box"><h4>Unreal conditions</h4>${ex("Wenn ich reich <b>wäre</b>, <b>würde</b> ich reisen. || If I were rich, I would travel. || I'm not rich → Konjunktiv II in both parts")}</div>
+ <div class="box"><h4>Advice</h4>${ex("Du <b>solltest</b> mehr schlafen. || You should sleep more.","An deiner Stelle <b>würde</b> ich zum Arzt gehen. || If I were you, I'd go to the doctor.")}</div>
+</div>
+<p><b>Past:</b> <span class="de">hätte / wäre + Partizip II</span></p>${ex("Wenn ich das gewusst <b>hätte</b>, <b>wäre</b> ich gekommen. || If I had known that, I would have come. || unreal past → hätte / wäre + Partizip II")}`,
+quiz:[["Wenn ich mehr Zeit ___, würde ich mehr lesen.","haben","hätte"],["Wenn er hier ___, wäre alles einfacher.","sein","wäre"],["Ich ___ gern nach Deutschland fahren.","würde + infinitive","würde"],["Du ___ mehr schlafen.","advice, sollen","solltest"],["___ Sie mir bitte das Salz geben?","können, polite","Könnten"],["Wenn ich das gewusst ___, wäre ich gekommen.","past","hätte"],["An deiner Stelle ___ ich zum Arzt gehen.","advice","würde"],["Wenn es keinen Regen ___, könnten wir grillen.","es gibt","gäbe"]]});
+
+B.push({id:"b1rel", title:"Relativsätze", why:"Relative pronouns (d___) look like articles, so you need both the noun's gender and the case inside the clause.",
+html:`
+${tbl(["","<span class='m'>masc.</span>","<span class='f'>fem.</span>","<span class='n'>neut.</span>","<span class='p'>plural</span>"],[
+ ["Nom","der","die","das","die"],["Akk","<b>den</b>","die","das","die"],["Dat","<b>dem</b>","<b>der</b>","<b>dem</b>","<b>denen</b>"],["Gen","<b>dessen</b>","<b>deren</b>","<b>dessen</b>","<b>deren</b>"]])}
+<p><b>Two steps:</b> the gender and number come from the noun before the comma; the case comes from the job of the pronoun inside the relative clause. The verb goes to the end.</p>
+${ex("Das ist der Mann, <b>der</b> mir geholfen hat. || That's the man who helped me. || he helped → Nominativ","Das ist der Film, <b>den</b> ich gesehen habe. || That's the film I saw. || I saw it → Akkusativ","Die Frau, <b>der</b> ich das Buch gegeben habe, ist nett. || The woman I gave the book to is nice. || to her → Dativ; die Frau → der","Die Kinder, mit <b>denen</b> ich spiele, sind laut. || The children I play with are loud. || mit + Dativ plural → denen","Der Kollege, <b>dessen</b> Auto kaputt ist, kommt mit dem Bus. || The colleague whose car is broken comes by bus. || whose (masc./neut.) → dessen")}
+<p><b>Also:</b> places → <span class="de">wo</span> (die Stadt, <b>wo</b> / in der ich wohne). After <span class="de">alles, etwas, nichts, das</span> → <span class="de">was</span>: <span class="de">Alles, <b>was</b> du sagst, stimmt.</span></p>`,
+quiz:[["Das ist der Mann, ___ mir geholfen hat.","Nom","der"],["Das ist der Film, ___ ich gestern gesehen habe.","Akk","den"],["Die Frau, ___ ich das Buch gegeben habe, ist meine Lehrerin.","Dat","der"],["Die Kinder, mit ___ ich spiele, sind sehr nett.","Dat, plural","denen"],["Das ist die Stadt, in ___ ich geboren bin.","in + Dat","der"],["Das ist alles, ___ ich weiß.","after alles","was"],["Der Kollege, ___ Auto kaputt ist, kommt mit dem Bus.","whose","dessen"],["Das Buch, ___ auf dem Tisch liegt, gehört mir.","Nom","das"]]});
+
+B.push({id:"b1konn", title:"Konnektoren B1", why:"These connectors are frequent B1 gaps, and each one fixes the word order of its clause.",
+html:`
+${tbl(["meaning","connector","example"],[
+ ["purpose","<b>damit</b> (verb last) / <b>um … zu</b> (same subject)","Ich lerne, <b>damit</b> ich die Prüfung bestehe. · Ich lerne, <b>um</b> die Prüfung <b>zu</b> bestehen.<span class=\"trs\">I study so that I pass the exam. · I study in order to pass the exam.</span>"],
+ ["contrast","<b>obwohl</b> (verb last) / <b>trotzdem</b> (verb next) / <b>zwar … aber</b>","<b>Obwohl</b> es regnet, gehen wir raus. · Es regnet, <b>trotzdem</b> gehen wir raus.<span class=\"trs\">Although it\'s raining, we\'re going out. · It\'s raining, but we\'re going out anyway.</span>"],
+ ["time","<b>während, bevor, nachdem, seit(dem), bis, sobald</b>","<b>Sobald</b> ich ankomme, rufe ich dich an.<span class=\"trs\">As soon as I arrive, I\'ll call you.</span>"],
+ ["condition","<b>wenn, falls</b>","<b>Falls</b> du Zeit hast, komm vorbei.<span class=\"trs\">If you happen to have time, come over.</span>"],
+ ["pairs","<b>sowohl … als auch</b> · <b>weder … noch</b> · <b>entweder … oder</b> · <b>nicht nur … sondern auch</b>","Ich trinke <b>weder</b> Kaffee <b>noch</b> Tee.<span class=\"trs\">I drink neither coffee nor tea.</span>"],
+ ["the more … the more","<b>je</b> + comparative …, <b>desto</b> + comparative","<b>Je</b> mehr ich übe, <b>desto</b> besser spreche ich.<span class=\"trs\">The more I practise, the better I speak.</span>"],
+ ["without / instead of","<b>ohne … zu</b> · <b>statt … zu</b>","Er ging, <b>ohne</b> Tschüss <b>zu</b> sagen.<span class=\"trs\">He left without saying goodbye.</span>"]])}`,
+quiz:[["Ich lerne Deutsch, ___ ich in Deutschland studieren kann.","purpose, verb last","damit"],["Ich spare Geld, ___ ein Auto zu kaufen.","purpose + zu","um"],["___ es regnet, gehen wir spazieren.","although","Obwohl"],["Er ist krank, ___ geht er zur Arbeit.","nevertheless","trotzdem"],["___ mehr ich übe, desto besser spreche ich.","the more","Je"],["Ich trinke ___ Kaffee noch Tee.","neither","weder"],["___ ich gegessen hatte, ging ich ins Bett.","after","Nachdem"],["Er ging weg, ohne Tschüss ___ sagen.","ohne …","zu"],["Ruf mich an, ___ du in Berlin ankommst.","as soon as","sobald|wenn"]]});
+
+B.push({id:"b1praep", title:"Verben mit Präpositionen", why:"The preposition after these verbs is fixed, so learn verb + preposition + case together.",
+html:`
+<h3>+ Akkusativ</h3>
+${tbl(["verb + preposition","meaning","example"],[["warten <b>auf</b>","<span style=\"font-family:var(--ui);font-size:14px\">to wait for</span>","Ich warte <b>auf den</b> Bus."],["sich freuen <b>auf</b>","<span style=\"font-family:var(--ui);font-size:14px\">to look forward to (future)</span>","Ich freue mich <b>auf die</b> Ferien."],["sich freuen <b>über</b>","<span style=\"font-family:var(--ui);font-size:14px\">to be happy about (now)</span>","Ich freue mich <b>über das</b> Geschenk."],["denken <b>an</b>","<span style=\"font-family:var(--ui);font-size:14px\">to think of / about</span>","Ich denke oft <b>an meine</b> Familie."],["sich erinnern <b>an</b>","<span style=\"font-family:var(--ui);font-size:14px\">to remember</span>","Ich erinnere mich <b>an den</b> ersten Tag."],["sich gewöhnen <b>an</b>","<span style=\"font-family:var(--ui);font-size:14px\">to get used to</span>","Ich habe mich <b>an das</b> Essen gewöhnt."],["sich interessieren <b>für</b>","<span style=\"font-family:var(--ui);font-size:14px\">to be interested in</span>","Sie interessiert sich <b>für</b> Musik."],["sich kümmern <b>um</b>","<span style=\"font-family:var(--ui);font-size:14px\">to take care of</span>","Er kümmert sich <b>um seine</b> Oma."],["sich bewerben <b>um</b>","<span style=\"font-family:var(--ui);font-size:14px\">to apply for (a job)</span>","Ich bewerbe mich <b>um eine</b> Stelle."],["bitten <b>um</b>","<span style=\"font-family:var(--ui);font-size:14px\">to ask for (a favour)</span>","Ich bitte dich <b>um</b> Hilfe."],["sich ärgern <b>über</b>","<span style=\"font-family:var(--ui);font-size:14px\">to be annoyed about</span>","Er ärgert sich <b>über den</b> Lärm."],["sich beschweren <b>über</b>","<span style=\"font-family:var(--ui);font-size:14px\">to complain about</span>","Sie beschwert sich <b>über das</b> Essen."],["sprechen <b>über</b>","<span style=\"font-family:var(--ui);font-size:14px\">to talk about</span>","Wir sprechen <b>über den</b> Film."],["sich verlassen <b>auf</b>","<span style=\"font-family:var(--ui);font-size:14px\">to rely on</span>","Du kannst dich <b>auf mich</b> verlassen."],["sich konzentrieren <b>auf</b>","<span style=\"font-family:var(--ui);font-size:14px\">to concentrate on</span>","Ich konzentriere mich <b>auf die</b> Prüfung."]])}
+<h3>+ Dativ</h3>
+${tbl(["verb + preposition","meaning","example"],[["teilnehmen <b>an</b>","<span style=\"font-family:var(--ui);font-size:14px\">to take part in</span>","Ich nehme <b>an dem</b> Kurs teil."],["Angst haben <b>vor</b>","<span style=\"font-family:var(--ui);font-size:14px\">to be afraid of</span>","Sie hat Angst <b>vor dem</b> Hund."],["sprechen <b>mit</b>","<span style=\"font-family:var(--ui);font-size:14px\">to talk with</span>","Ich spreche <b>mit meinem</b> Lehrer."],["fragen <b>nach</b>","<span style=\"font-family:var(--ui);font-size:14px\">to ask about (information)</span>","Er fragt <b>nach dem</b> Weg."],["träumen <b>von</b>","<span style=\"font-family:var(--ui);font-size:14px\">to dream of</span>","Ich träume <b>von einer</b> Reise."],["abhängen <b>von</b>","<span style=\"font-family:var(--ui);font-size:14px\">to depend on</span>","Das hängt <b>vom</b> Wetter ab."],["gehören <b>zu</b>","<span style=\"font-family:var(--ui);font-size:14px\">to belong to, be part of</span>","Er gehört <b>zu meinen</b> Freunden."],["einladen <b>zu</b>","<span style=\"font-family:var(--ui);font-size:14px\">to invite to</span>","Ich lade dich <b>zum</b> Essen ein."],["sich entschuldigen <b>bei</b>","<span style=\"font-family:var(--ui);font-size:14px\">to apologise to (a person)</span>","Ich entschuldige mich <b>bei dir</b>."],["sich entschuldigen <b>für</b> + A","<span style=\"font-family:var(--ui);font-size:14px\">to apologise for (a thing)</span>","… <b>für den</b> Fehler."],["sich bewerben <b>bei</b>","<span style=\"font-family:var(--ui);font-size:14px\">to apply to (a company)</span>","Ich bewerbe mich <b>bei einer</b> Firma."]])}
+<h3>Easily confused</h3>
+${tbl(["","",""],[["sich freuen <b>auf</b> / <b>über</b>","something coming / something you have now","Ich freue mich auf die Party. · Ich freue mich über die Blumen."],["<b>bitten um</b> / <b>fragen nach</b>","ask for a favour / ask for information","Ich bitte um Hilfe. · Ich frage nach dem Weg."],["sich bewerben <b>um</b> / <b>bei</b>","the job / the company","Ich bewerbe mich bei Samsung um eine Stelle."],["sprechen <b>mit</b> / <b>über</b>","with a person / about a topic","Ich spreche mit dir über das Problem."]])}
+<h3>da- and wo- words</h3>
+<p>For things, replace preposition + pronoun with <b>da(r)- + preposition</b>, and ask with <b>wo(r)-</b>. Add <b>r</b> before a vowel.</p>
+${ex("Ich warte auf den Brief. → Ich warte <b>darauf</b>. || I'm waiting for the letter. → I'm waiting for it. || a thing → da + r + auf","<b>Worauf</b> wartest du? || What are you waiting for? || question about a thing → wo + r + auf","Ich denke an die Prüfung. → Ich denke <b>daran</b>. || I'm thinking about the exam. → I'm thinking about it. || an starts with a vowel → dar-an","<b>Woran</b> denkst du? || What are you thinking about? || wo-r-an","<b>Auf wen</b> wartest du? – Ich warte auf meinen Bruder. Ich warte <b>auf ihn</b>. || Who are you waiting for? – For my brother. For him. || for people: preposition + wen / pronoun, never darauf")}`,
+quiz:[["Ich warte schon lange ___ den Bus.","preposition","auf"],["Ich freue mich ___ die Ferien.","future","auf"],["Sie interessiert sich ___ Kunst.","preposition","für"],["Er hat Angst ___ großen Hunden.","preposition","vor"],["Ich muss mich ___ meine kleine Schwester kümmern.","preposition","um"],["___ denkst du? – An meine Prüfung.","wo- word","Woran"],["Wartest du auf den Brief? – Ja, ich warte ___.","da- word","darauf"],["Ich habe mich ___ den Lärm beschwert.","preposition","über"],["Ich habe mich ___ das Wetter in Korea gewöhnt.","preposition","an"]]});
+
+B.push({id:"b1mehr", title:"Genitiv, lassen & mehr", why:"Smaller B1 structures that appear in harder onSET texts.",
+html:`
+<h3>1. Genitiv: whose?</h3>
+<p>Shows who something belongs to. Masculine and neuter nouns add <b>-s</b> or <b>-es</b>; the article becomes <b>des</b> (m/n) or <b>der</b> (f/plural).</p>
+${ex("das Auto <b>des</b> Lehrer<b>s</b> || the teacher's car || der Lehrer → des Lehrers","die Farbe <b>der</b> Tür || the colour of the door || die Tür → der Tür (no -s for feminine)","die Eltern <b>des</b> Kind<b>es</b> || the child's parents || das Kind → des Kindes","der Garten <b>eines</b> neu<b>en</b> Hauses || the garden of a new house || ein → eines; the adjective takes -en")}
+<h3>2. Prepositions + Genitiv</h3>
+<p><b>wegen</b> (because of), <b>trotz</b> (despite), <b>während</b> (during), <b>statt</b> (instead of), <b>innerhalb</b> (within). In speech many people use Dativ after wegen, but write Genitiv.</p>
+${ex("<b>Wegen</b> des Wetters bleiben wir zu Hause. || Because of the weather, we're staying at home. || wegen + Genitiv; das Wetter → des Wetters","<b>Trotz</b> des Regens gehen wir spazieren. || Despite the rain, we're going for a walk. || trotz + Genitiv; der Regen → des Regens","<b>Während</b> des Studiums habe ich viel gelernt. || During my studies I learned a lot. || während + Genitiv","Ich nehme den Bus <b>statt</b> eines Taxis. || I take the bus instead of a taxi. || statt + Genitiv; ein Taxi → eines Taxis","Bitte antworten Sie <b>innerhalb</b> einer Woche. || Please reply within a week. || innerhalb + Genitiv; eine Woche → einer Woche")}
+<h3>3. lassen</h3>
+<p><b>lassen + infinitive</b> = you don't do it yourself, someone else does it for you. <b>lassen</b> alone = to let, or to leave something somewhere.</p>
+${ex("Ich <b>lasse</b> mein Auto reparieren. || I'm having my car repaired. || a mechanic repairs it, not me","Ich <b>lasse</b> mir die Haare schneiden. || I'm having my hair cut. || mir = for myself","<b>Lass</b> mich in Ruhe! || Leave me alone! || lassen = let / leave","Ich habe mein Handy zu Hause <b>gelassen</b>. || I left my phone at home. || lassen = leave something somewhere")}
+<h3>4. brauchen + nicht / nur + zu</h3>
+<p><b>nicht brauchen zu</b> = not have to (= nicht müssen). <b>nur brauchen zu</b> = only have to.</p>
+${ex("Du brauchst morgen nicht <b>zu</b> kommen. || You don't need to come tomorrow. || = Du musst nicht kommen","Du brauchst nur an<b>zu</b>rufen. || You only need to call. || separable verb: zu in the middle")}
+<h3>5. Verbs + zu + infinitive</h3>
+<p>After <span class="de">versuchen, vergessen, anfangen, aufhören, vorhaben, hoffen, Lust haben, Zeit haben, es ist wichtig / schwer / schön</span> comes <b>zu + infinitive</b> at the end. <b>Not</b> after modal verbs: <span class="de">Ich muss lernen</span> (no zu).</p>
+${ex("Ich versuche, mehr <b>zu</b> lesen. || I'm trying to read more. || versuchen + zu","Ich habe vergessen, die Tür ab<b>zu</b>schließen. || I forgot to lock the door. || abschließen is separable → abzuschließen","Er hat angefangen, Deutsch <b>zu</b> lernen. || He has started learning German. || anfangen + zu","Ich habe keine Zeit, ins Kino <b>zu</b> gehen. || I have no time to go to the cinema. || Zeit haben + zu")}
+<h3>6. Adjectives as nouns</h3>
+<p>An adjective can become a noun: it gets a capital letter but keeps its <b>adjective ending</b>.</p>
+${ex("Er ist <b>Deutscher</b>. Sie ist <b>Deutsche</b>. || He is German. She is German. || ein Deutscher (m), eine Deutsche (f)","<b>Die Erwachsenen</b> trinken Kaffee. || The adults are drinking coffee. || plural after die → -en","Ich habe <b>etwas Neues</b> gelernt. || I learned something new. || etwas / nichts / viel + adjective noun + -es","Heute ist <b>nichts Besonderes</b> passiert. || Nothing special happened today. || nichts + Besonderes")}
+<h3>7. Participles as adjectives</h3>
+<p><b>Partizip II</b> (gekocht, geschlossen) = finished or passive. <b>Partizip I</b> = infinitive + <b>d</b> (lachend, schlafend) = happening right now. Both take normal adjective endings.</p>
+${ex("Die Tür ist geschlossen. → die <b>geschlossene</b> Tür || The door is closed. → the closed door || Partizip II + adjective ending -e","Ein <b>lachendes</b> Kind spielt im Garten. || A laughing child is playing in the garden. || lachen + d = lachend, + ending -es","Das <b>gekochte</b> Essen ist noch warm. || The cooked food is still warm. || kochen → gekocht → das gekochte Essen")}
+<h3>8. n-nouns</h3>
+<p>Some masculine nouns, mostly people and nouns ending in -e, add <b>-(e)n</b> in every case except Nominativ singular: <span class="de">der Kunde, der Kollege, der Junge, der Student, der Mensch, der Nachbar, der Herr</span>.</p>
+${ex("Ich frage den Kunde<b>n</b>. || I ask the customer. || Akkusativ: der Kunde → den Kunden","Ich helfe meinem Kollege<b>n</b>. || I help my colleague. || Dativ: dem Kollegen","Kennst du den neuen Student<b>en</b>? || Do you know the new student? || Akkusativ: den Studenten","Ich schreibe Herr<b>n</b> Kim eine E-Mail. || I'm writing Mr Kim an email. || der Herr → Herrn")}</div>`,
+quiz:[["___ des Regens bleiben wir zu Hause.","because of","Wegen"],["Das ist das Auto ___ Lehrers.","Genitiv","des"],["___ des Urlaubs habe ich viel gelesen.","during","Während"],["Ich ___ mir die Haare schneiden.","lassen","lasse"],["Du brauchst morgen nicht ___ kommen.","brauchen nicht …","zu"],["Ich habe vergessen, dich ___.","anrufen","anzurufen"],["Er ist ein Deutsch___.","ending only","er"],["Ich habe heute etwas Neu___ gelernt.","ending only","es"],["Trotz ___ Kälte gingen wir schwimmen.","die Kälte, Genitiv","der"],["Die ___ Tür ist rot.","geschlossen + ending","geschlossene"],["Ein ___ Kind spielt im Garten.","lachen, Partizip I + ending","lachendes"],["Ich helfe meinem Kollege___.","ending only","n"],["Kennst du den neuen Student___?","ending only","en"],["Ich habe mein Handy zu Hause ___.","lassen, Perfekt","gelassen"],["Ich ___ mein Auto reparieren.","someone else repairs it","lasse"]]});
+
+/* ================= B2 GRAMMAR ================= */
+const BB = [];
+
+BB.push({id:"b2passiv", title:"Passiv: alle Formen & Passiversatz", why:"B2/C1 texts in the C-test are full of passive forms and their 'replacements': wi___, wur___, wor___, lä___ sich, -bar.",
+html:`
+${tbl(["form","structure","example"],[
+ ["Vorgangspassiv (action)","werden + Partizip II","Die Tür <b>wird</b> um 20 Uhr <b>geschlossen</b>.<span class=\"trs\">The door is closed at 8 pm.</span>"],
+ ["Zustandspassiv (result)","sein + Partizip II","Die Tür <b>ist geschlossen</b>.<span class=\"trs\">The door is closed (it is shut now).</span>"],
+ ["Perfekt / Plusquamperfekt","ist / war + Partizip II + <b>worden</b>","Das Museum <b>ist</b> 1990 eröffnet <b>worden</b>.<span class=\"trs\">The museum was opened in 1990.</span>"],
+ ["with a modal verb","modal + Partizip II + werden","Die Regeln <b>müssen</b> beachtet <b>werden</b>.<span class=\"trs\">The rules must be followed.</span>"]])}
+<h3>Passiversatz: other ways to say the same</h3>
+${ex("Das Problem <b>lässt sich</b> leicht <b>lösen</b>. || The problem can be solved easily. || sich lassen + infinitive = passive + können","Die Formulare <b>sind</b> bis Freitag <b>abzugeben</b>. || The forms must be handed in by Friday. || sein + zu + infinitive = passive + müssen","Das Problem ist <b>lösbar</b>. || The problem is solvable. || verb stem + -bar = can be …-ed","Hier <b>kann man</b> gut parken. || You can park well here. || man + active verb, no passive needed")}
+${tip("C-test tip","After a noun subject, <span class='de'>wi___</span> is very often <b>wird</b> (passive), <span class='de'>wur___</span> → <b>wurde(n)</b>, and <span class='de'>wor___</span> → <b>worden</b> (passive Perfekt). Look for a Partizip II at the end of the clause.")}`,
+quiz:[["Das Problem ___ sich leicht lösen.","sich lassen","lässt"],["Die Formulare sind bis Freitag ___.","abgeben, sein + zu","abzugeben"],["Das Rätsel ist leicht lös___.","-bar adjective, ending only","bar"],["Die Brücke ___ gerade gebaut.","passive, Präsens","wird"],["Das Museum ist 1990 eröffnet ___.","Perfekt passive","worden"],["Die Tür ___ schon geschlossen, als ich kam.","Zustandspassiv, past","war"],["Die Regeln müssen beachtet ___.","modal + passive","werden"],["Man kann den Text nicht lesen. = Der Text ist nicht ___.","lesen + -bar","lesbar"]]});
+
+BB.push({id:"b2konj1", title:"Konjunktiv I: indirekte Rede", why:"News and report texts (the hard onSET texts) use Konjunktiv I to report what someone said: sei, habe, werde, könne.",
+html:`
+<p>Konjunktiv I shows that the writer only <b>reports</b> what someone else said. You mostly need the er/sie/es forms: stem + <b>-e</b>.</p>
+${tbl(["","sein","haben","werden","können","müssen","machen"],[
+ ["er / sie / es","<b>sei</b>","<b>habe</b>","<b>werde</b>","<b>könne</b>","<b>müsse</b>","<b>mache</b>"],
+ ["sie (plural)","seien","hätten*","würden*","könnten*","müssten*","würden machen*"]])}
+<p class="muted">* When the Konjunktiv I looks like the normal present tense (sie haben, sie werden), use Konjunktiv II instead.</p>
+${ex("Der Minister sagte, die Lage <b>sei</b> ernst. || The minister said the situation was serious. || sein → er/sie/es sei","Sie erklärte, sie <b>habe</b> keine Zeit. || She explained that she had no time. || haben → sie habe","Er behauptet, er <b>könne</b> das allein schaffen. || He claims he can manage it on his own. || können → er könne","Experten meinen, die Preise <b>würden</b> weiter steigen. || Experts think prices will keep rising. || 'sie werden' looks like the indicative → würden","Laut Polizei <b>sei</b> der Fahrer zu schnell <b>gefahren</b>. || According to the police, the driver was going too fast. || past in reported speech: sei / habe + Partizip II")}
+${tip("C-test tip","After verbs like <i>sagen, erklären, betonen, behaupten, meinen</i> or after <i>laut … / … zufolge</i>, the gap <span class='de'>s___</span> or <span class='de'>se___</span> is very often <b>sei</b>.")}`,
+quiz:[["Der Arzt sagt, das ___ nicht gefährlich.","sein, Konjunktiv I","sei"],["Sie meint, sie ___ keine Lust.","haben, Konjunktiv I","habe"],["Er erklärte, er ___ morgen kommen.","werden, Konjunktiv I","werde"],["Die Firma teilte mit, man ___ das Problem lösen.","können, Konjunktiv I","könne"],["Laut Bericht ___ der Unfall in der Nacht passiert.","past, sein","sei"],["Die Studenten sagen, sie ___ zu wenig Zeit.","haben, plural → Konjunktiv II","hätten"],["Kritiker betonen, eine Lösung ___ dringend nötig.","sein, Konjunktiv I","sei"],["Er sagt, er ___ jeden Tag Sport.","machen, Konjunktiv I","mache"]]});
+
+BB.push({id:"b2nom", title:"Nominalstil", why:"Formal texts turn verbs and whole clauses into nouns. Recognising the noun forms helps with long words in B2/C1 gaps.",
+html:`
+${tbl(["Verbalstil (clause)","Nominalstil (noun)","English"],[
+ ["weil es regnet","<b>wegen des Regens</b>","because of the rain"],
+ ["als er ankam","<b>bei seiner Ankunft</b>","when he arrived"],
+ ["nachdem wir gegessen hatten","<b>nach dem Essen</b>","after the meal"],
+ ["bevor sie abfuhr","<b>vor ihrer Abfahrt</b>","before her departure"],
+ ["obwohl es kalt war","<b>trotz der Kälte</b>","despite the cold"],
+ ["während er studierte","<b>während seines Studiums</b>","during his studies"],
+ ["wenn Sie Fragen haben","<b>bei Fragen</b>","if you have questions"],
+ ["um Energie zu sparen","<b>zum Sparen von Energie</b>","to save energy"]], false)}
+<h3>How nouns are made from verbs and adjectives</h3>
+${ex("entwickeln → die <b>Entwicklung</b> || to develop → the development || verb stem + -ung = die","lernen → das <b>Lernen</b> || to learn → (the) learning || infinitive as a noun = das","möglich → die <b>Möglichkeit</b> || possible → the possibility || adjective + -heit / -keit = die","ankommen → die <b>Ankunft</b> · verbrauchen → der <b>Verbrauch</b> · beginnen → der <b>Beginn</b> || arrive → arrival · consume → consumption · begin → beginning || short stem nouns: learn them as words")}`,
+quiz:[["___ des Regens blieben wir zu Hause.","weil es regnete","Wegen"],["Bei seiner ___ war es schon dunkel.","als er ankam","Ankunft"],["Nach dem ___ gingen wir spazieren.","nachdem wir gegessen hatten","Essen"],["Trotz der ___ gingen sie schwimmen.","obwohl es kalt war","Kälte"],["Die ___ neuer Medikamente dauert lange.","entwickeln → noun","Entwicklung"],["Bei ___ wenden Sie sich an das Büro.","wenn Sie Fragen haben","Fragen"],["Während seines ___ arbeitete er in einem Café.","während er studierte","Studiums"],["Der ___ von Wasser steigt.","verbrauchen → noun","Verbrauch"]]});
+
+BB.push({id:"b2partizip", title:"Partizipialattribute", why:"B2/C1 texts put a participle with extra words before the noun instead of a relative clause: die seit Jahren steig___ Mieten.",
+html:`
+<p>Read from the article to the noun: everything in between describes the noun. <b>Partizip I</b> (infinitive + d) = the noun is doing it now. <b>Partizip II</b> = it was done to the noun. Both take normal adjective endings.</p>
+${ex("die <b>steigenden</b> Preise || rising prices || = die Preise, die steigen (Partizip I)","die seit Jahren <b>steigenden</b> Mieten || rents that have been rising for years || article … extra words … participle + noun","das gestern <b>gekaufte</b> Buch || the book bought yesterday || = das Buch, das gestern gekauft wurde (Partizip II)","die im Winter <b>beheizten</b> Gewächshäuser || the greenhouses heated in winter || = die Gewächshäuser, die im Winter beheizt werden","ein schnell <b>wachsendes</b> Unternehmen || a fast-growing company || Partizip I + ending -es (ein … Unternehmen)","die noch <b>zu erledigenden</b> Aufgaben || the tasks that still have to be done || zu + Partizip I = must be done (C1)")}`,
+quiz:[["Die ___ Preise ärgern viele Menschen.","steigen, Partizip I + ending","steigenden"],["Das gestern ___ Buch ist spannend.","kaufen, Partizip II + ending","gekaufte"],["Die im Winter ___ Häuser verbrauchen viel Energie.","heizen, Partizip II + ending","geheizten"],["Ein schnell ___ Unternehmen sucht Mitarbeiter.","wachsen, Partizip I + ending","wachsendes"],["Die ___ Kinder spielten im Garten.","lachen, Partizip I + ending","lachenden"],["Der ___ Brief liegt auf dem Tisch.","schreiben, Partizip II + ending","geschriebene"],["die Frau, die singt = die ___ Frau","Partizip I","singende"],["das Auto, das repariert wurde = das ___ Auto","Partizip II","reparierte"]]});
+
+BB.push({id:"b2konn", title:"Konnektoren B2", why:"Harder texts link ideas with B2 connectors. Each one tells you something about the word order and the meaning of the gap.",
+html:`
+${tbl(["meaning","connector","example"],[
+ ["how (by doing)","<b>indem</b> (verb last)","Man spart Energie, <b>indem</b> man das Licht ausschaltet.<span class=\"trs\">You save energy by switching off the light.</span>"],
+ ["result","<b>sodass</b> / <b>so …, dass</b>","Es regnete stark, <b>sodass</b> das Spiel ausfiel.<span class=\"trs\">It rained heavily, so the match was cancelled.</span>"],
+ ["extra reason","<b>zumal</b> (verb last)","Ich bleibe zu Hause, <b>zumal</b> ich erkältet bin.<span class=\"trs\">I'm staying home, especially since I have a cold.</span>"],
+ ["condition","<b>sofern</b>, <b>falls</b>","Wir fahren, <b>sofern</b> das Wetter gut ist.<span class=\"trs\">We'll go, provided the weather is good.</span>"],
+ ["contrast","<b>wohingegen</b>, <b>während</b>, <b>hingegen</b>","Er mag die Stadt, <b>wohingegen</b> sie das Land liebt.<span class=\"trs\">He likes the city, whereas she loves the countryside.</span>"],
+ ["without / instead","<b>ohne dass</b>, <b>(an)statt dass</b>","Er ging, <b>ohne dass</b> es jemand merkte.<span class=\"trs\">He left without anyone noticing.</span>"],
+ ["consequence","<b>folglich</b>, <b>somit</b>, <b>daher</b> (verb next)","Er hat nicht gelernt, <b>folglich</b> ist er durchgefallen.<span class=\"trs\">He didn't study, so he failed.</span>"],
+ ["two sides","<b>einerseits … andererseits</b>, <b>zwar … aber</b>","<b>Zwar</b> ist es teuer, <b>aber</b> es lohnt sich.<span class=\"trs\">It's expensive, but it's worth it.</span>"]])}`,
+quiz:[["Man spart Energie, ___ man das Licht ausschaltet.","by doing","indem"],["Es regnete stark, ___ das Spiel ausfiel.","result","sodass"],["Ich bleibe zu Hause, ___ ich ohnehin müde bin.","especially since","zumal"],["Wir fahren, ___ das Wetter gut ist.","provided that","sofern|falls"],["Er hat nicht gelernt, ___ ist er durchgefallen.","consequently","folglich|daher|somit|deshalb"],["Sie liebt die Stadt, ___ er das Land bevorzugt.","whereas","wohingegen|während"],["Er ging, ___ dass jemand es merkte.","without","ohne"],["___ ist es teuer, aber es lohnt sich.","it's true that …","Zwar"]]});
+
+BB.push({id:"b2praep", title:"Präpositionen B2", why:"Formal prepositions (mostly + Genitiv) start many sentences in B2/C1 texts: Aufg___ des …, Angesi___ der …",
+html:`
+${tbl(["preposition","meaning","example"],[
+ ["<b>aufgrund</b> + G","due to","<b>Aufgrund</b> des Streiks fielen Züge aus.<span class=\"trs\">Trains were cancelled due to the strike.</span>"],
+ ["<b>infolge</b> + G","as a result of","<b>Infolge</b> des Unfalls gab es Stau.<span class=\"trs\">There was a traffic jam as a result of the accident.</span>"],
+ ["<b>angesichts</b> + G","in view of","<b>Angesichts</b> der Kosten verzichteten wir darauf.<span class=\"trs\">In view of the costs, we did without it.</span>"],
+ ["<b>hinsichtlich / bezüglich</b> + G","with regard to","<b>Hinsichtlich</b> der Preise gibt es Unterschiede.<span class=\"trs\">There are differences with regard to prices.</span>"],
+ ["<b>mithilfe</b> + G","with the help of","<b>Mithilfe</b> einer App lernt sie Wörter.<span class=\"trs\">She learns words with the help of an app.</span>"],
+ ["<b>anhand</b> + G","on the basis of","<b>Anhand</b> eines Beispiels erklärte er die Regel.<span class=\"trs\">He explained the rule with an example.</span>"],
+ ["<b>innerhalb / außerhalb</b> + G","within / outside","<b>innerhalb</b> einer Woche<span class=\"trs\">within a week</span>"],
+ ["… <b>zufolge</b> (+ D, after the noun)","according to","Einer Studie <b>zufolge</b> schlafen viele zu wenig.<span class=\"trs\">According to a study, many people sleep too little.</span>"],
+ ["<b>laut</b> + D / G","according to","<b>Laut</b> Polizei war niemand verletzt.<span class=\"trs\">According to the police, nobody was hurt.</span>"]])}`,
+quiz:[["___ des Streiks fielen viele Züge aus.","due to","Aufgrund"],["___ der hohen Kosten wurde das Projekt gestoppt.","in view of","Angesichts"],["___ einer App lernt sie Vokabeln.","with the help of","Mithilfe"],["Einer Umfrage ___ sind viele Menschen zufrieden.","according to, after the noun","zufolge"],["___ der Preise gibt es große Unterschiede.","with regard to","Hinsichtlich|Bezüglich"],["Bitte zahlen Sie ___ von zwei Wochen.","within","innerhalb"],["___ des Unfalls gab es einen langen Stau.","as a result of","Infolge|Aufgrund|Wegen"],["Anhand ___ Beispiels erklärte er die Regel.","ein, Genitiv neuter","eines"]]});
+
+BB.push({id:"b2nvv", title:"Nomen-Verb-Verbindungen", why:"Fixed noun + verb pairs are typical of B2 texts. In a C-test you often have to complete the verb or the noun of the pair.",
+html:`
+${tbl(["phrase","meaning","example"],[
+ ["eine Entscheidung <b>treffen</b>","to make a decision","Wir müssen bald eine Entscheidung <b>treffen</b>.<span class=\"trs\">We have to make a decision soon.</span>"],
+ ["zur <b>Verfügung</b> stehen / stellen","to be available / to provide","Der Raum steht allen zur <b>Verfügung</b>.<span class=\"trs\">The room is available to everyone.</span>"],
+ ["in <b>Frage</b> kommen","to be possible / an option","Das kommt nicht in <b>Frage</b>.<span class=\"trs\">That's out of the question.</span>"],
+ ["<b>Rücksicht</b> nehmen auf + A","to show consideration for","Nimm <b>Rücksicht</b> auf die Nachbarn!<span class=\"trs\">Be considerate of the neighbours!</span>"],
+ ["eine <b>Rolle</b> spielen","to play a role","Geld spielt keine <b>Rolle</b>.<span class=\"trs\">Money doesn't matter.</span>"],
+ ["in <b>Kraft</b> treten","to come into force","Das Gesetz tritt im Januar in <b>Kraft</b>.<span class=\"trs\">The law comes into force in January.</span>"],
+ ["Maßnahmen <b>ergreifen</b>","to take measures","Die Stadt <b>ergreift</b> neue Maßnahmen.<span class=\"trs\">The city is taking new measures.</span>"],
+ ["einen <b>Beitrag</b> leisten zu + D","to contribute to","Jeder kann einen <b>Beitrag</b> leisten.<span class=\"trs\">Everyone can contribute.</span>"],
+ ["<b>Kritik</b> üben an + D","to criticise","Viele üben <b>Kritik</b> an dem Plan.<span class=\"trs\">Many people criticise the plan.</span>"],
+ ["in <b>Anspruch</b> nehmen","to make use of / take up (time)","Das nimmt viel Zeit in <b>Anspruch</b>.<span class=\"trs\">That takes a lot of time.</span>"],
+ ["zum <b>Ausdruck</b> bringen","to express","Er brachte seine Freude zum <b>Ausdruck</b>.<span class=\"trs\">He expressed his joy.</span>"],
+ ["<b>Stellung</b> nehmen zu + D","to comment on","Die Ministerin nahm <b>Stellung</b> zu den Vorwürfen.<span class=\"trs\">The minister commented on the accusations.</span>"]])}`,
+quiz:[["Wir müssen bald eine Entscheidung ___.","make a decision","treffen"],["Für Fragen stehe ich gern zur ___.","be available","Verfügung"],["Diese Lösung kommt nicht in ___.","be an option","Frage"],["Bitte nehmen Sie ___ auf die Nachbarn.","show consideration","Rücksicht"],["Geld spielt dabei keine ___.","play a role","Rolle"],["Das Gesetz tritt im Januar in ___.","come into force","Kraft"],["Die Regierung muss Maßnahmen ___.","take measures","ergreifen"],["Jeder kann einen ___ zum Umweltschutz leisten.","contribution","Beitrag"]]});
+
+BB.push({id:"b2modal", title:"Vermutungen mit Modalverben", why:"Modal verbs can show how sure the writer is, or that something is only reported. Very common in news texts.",
+html:`
+${tbl(["how sure?","form","example"],[
+ ["almost certain","<b>muss</b> / <b>müsste</b>","Er <b>muss</b> krank sein.<span class=\"trs\">He must be ill.</span>"],
+ ["probable","<b>dürfte</b>","Das <b>dürfte</b> teuer werden.<span class=\"trs\">That's probably going to be expensive.</span>"],
+ ["possible","<b>könnte</b> / <b>kann</b>","Sie <b>könnte</b> recht haben.<span class=\"trs\">She could be right.</span>"],
+ ["assumption","<b>wird</b> … <b>wohl</b>","Sie <b>wird wohl</b> im Stau stehen.<span class=\"trs\">She's probably stuck in traffic.</span>"],
+ ["others say so","<b>soll</b>","Der Täter <b>soll</b> geflohen sein.<span class=\"trs\">The culprit is said to have escaped.</span>"],
+ ["he/she says so","<b>will</b>","Er <b>will</b> nichts gesehen haben.<span class=\"trs\">He claims not to have seen anything.</span>"]])}
+${tip("Watch out","With a Perfekt infinitive (<i>gesehen haben, geflohen sein</i>) the guess is about the <b>past</b>: <span class='de'>Er muss den Zug verpasst haben</span> = He must have missed the train.")}`,
+quiz:[["Es klingelt. Das ___ der Postbote sein.","müssen, almost certain","muss"],["Die Reparatur ___ teuer werden.","dürfen, probable","dürfte"],["Der Politiker ___ Geld genommen haben.","sollen, others say","soll"],["Er ___ den Unfall nicht gesehen haben.","wollen, he says","will"],["Sie ___ wohl schon zu Hause sein.","werden, assumption","wird"],["Das ___ stimmen, aber ich bin nicht sicher.","können, possible","könnte"],["Laut Zeitung ___ das Konzert ausfallen.","sollen","soll"],["Er ist nicht da. Er ___ krank sein.","müssen","muss"]]});
+
+/* ================= B1 VOCABULARY ================= */
+const NOUNS_B1 = {
+ "Arbeit & Beruf":"die Bewerbung|-en|application;der Lebenslauf|¨-e|CV;das Vorstellungsgespräch|-e|job interview;die Erfahrung|-en|experience;die Ausbildung|-en|vocational training;das Praktikum|Praktika|internship;der Arbeitgeber|-|employer;der Arbeitnehmer|-|employee;die Abteilung|-en|department;die Besprechung|-en|meeting;der Vertrag|¨-e|contract;die Kündigung|-en|notice, dismissal;die Überstunde|-n|overtime hour;die Fähigkeit|-en|ability;die Verantwortung|–|responsibility",
+ "Studium & Bildung":"das Fach|¨-er|subject;der Abschluss|¨-e|degree;das Zeugnis|-se|certificate;die Note|-n|grade;das Semester|-|semester;das Stipendium|Stipendien|scholarship;die Hausarbeit|-en|term paper;der Vortrag|¨-e|presentation;die Anmeldung|-en|registration;die Gebühr|-en|fee;der Studienplatz|¨-e|university place;die Kenntnis|-se|knowledge;die Fremdsprache|-n|foreign language",
+ "Behörden & Alltag":"die Behörde|-n|authority;das Amt|¨-er|office;der Antrag|¨-e|application form;das Formular|-e|form;der Ausweis|-e|ID card;der Pass|¨-e|passport;die Aufenthaltserlaubnis|-se|residence permit;die Versicherung|-en|insurance;das Konto|Konten|bank account;die Überweisung|-en|bank transfer;die Rechnung|-en|bill;der Vermieter|-|landlord;die Kaution|-en|deposit;die Nebenkosten|Pl.|utility costs;der Umzug|¨-e|move",
+ "Gesundheit":"die Krankheit|-en|illness;das Rezept|-e|prescription, recipe;die Krankenkasse|-n|health insurance;die Untersuchung|-en|examination;die Verletzung|-en|injury;der Unfall|¨-e|accident;die Ernährung|–|nutrition;die Bewegung|-en|exercise, movement;der Stress|–|stress;die Praxis|Praxen|doctor's surgery;der Notfall|¨-e|emergency;die Behandlung|-en|treatment",
+ "Umwelt & Gesellschaft":"der Klimawandel|–|climate change;der Müll|–|rubbish;die Energie|-n|energy;die Luft|–|air;der Verkehr|–|traffic;die Gesellschaft|-en|society;die Regierung|-en|government;das Gesetz|-e|law;die Meinung|-en|opinion;die Entwicklung|-en|development;die Bevölkerung|–|population;der Bürger|-|citizen;die Möglichkeit|-en|possibility;die Lösung|-en|solution",
+ "Medien & Technik":"das Gerät|-e|device;die Anwendung|-en|application, app;der Bildschirm|-e|screen;das Netzwerk|-e|network;der Beitrag|¨-e|post, contribution;die Werbung|–|advertising;die Sendung|-en|TV programme;der Artikel|-|article;die Zeitschrift|-en|magazine;das Passwort|¨-er|password;die Daten|Pl.|data;der Nutzer|-|user",
+ "Gefühle & Beziehungen":"die Freude|–|joy;die Angst|¨-e|fear;der Ärger|–|anger, trouble;die Sorge|-n|worry;die Hoffnung|-en|hope;die Beziehung|-en|relationship;die Freundschaft|-en|friendship;das Vertrauen|–|trust;die Geduld|–|patience;der Streit|-s|argument;die Entschuldigung|-en|apology;das Gefühl|-e|feeling",
+ "Wörter für Texte":"der Vorteil|-e|advantage;der Nachteil|-e|disadvantage;der Grund|¨-e|reason;die Ursache|-n|cause;die Folge|-n|consequence;das Ziel|-e|goal;der Unterschied|-e|difference;die Voraussetzung|-en|requirement;das Ergebnis|-se|result;die Ansicht|-en|view;die Aufgabe|-n|task;die Bedeutung|-en|meaning, importance;der Teil|-e|part;die Rolle|-n|role;die Situation|-en|situation"
+};
+const VERBS_B1 = [["sich bewerben (um)","to apply (for)"],["sich entscheiden (für)","to decide (on)"],["erreichen","to reach, achieve"],["verbessern","to improve"],["vergleichen","to compare"],["unterstützen","to support"],["verlangen","to demand"],["behaupten","to claim"],["vorschlagen","to suggest"],["sich beschweren (über)","to complain"],["sich erinnern (an)","to remember"],["sich gewöhnen (an)","to get used to"],["sich kümmern (um)","to take care of"],["sich verlassen (auf)","to rely on"],["erledigen","to get done"],["ausfüllen","to fill in"],["beantragen","to apply for (officially)"],["kündigen","to quit, cancel"],["verdienen","to earn"],["sparen","to save"],["ausgeben","to spend"],["leihen","to lend"],["überweisen","to transfer money"],["bestehen","to pass (an exam)"],["durchfallen","to fail"],["wiederholen","to repeat"],["sich anmelden","to register"],["teilnehmen (an)","to take part"],["absagen","to cancel"],["verschieben","to postpone"],["vereinbaren","to arrange"],["sich verabreden","to make a date"],["überzeugen","to convince"],["vermeiden","to avoid"],["verhindern","to prevent"],["entstehen","to arise"],["sich entwickeln","to develop"],["zunehmen","to increase"],["abnehmen","to decrease, lose weight"],["steigen","to rise"],["sinken","to fall"],["schützen","to protect"],["verbrauchen","to consume"],["herstellen","to produce"],["benutzen","to use"],["herunterladen","to download"],["sich verletzen","to get hurt"],["sich erholen","to recover, relax"],["behandeln","to treat"],["schaden","to harm"],["sich bedanken (für)","to say thank you"],["sich entschuldigen (für)","to apologise"],["vertrauen","to trust"]];
+const ADV_B1 = [["allerdings","however"],["dennoch","nevertheless"],["inzwischen","meanwhile, by now"],["mittlerweile","by now"],["damals","back then"],["bisher","until now"],["rechtzeitig","in time"],["regelmäßig","regularly"],["häufig","frequently"],["ungefähr","approximately"],["tatsächlich","actually, really"],["wahrscheinlich","probably"],["offenbar","apparently"],["zunächst","at first"],["schließlich","finally, after all"],["unbedingt","absolutely"],["vor allem","above all"],["einerseits … andererseits","on the one hand … on the other"],["im Gegensatz zu","in contrast to"],["zuverlässig","reliable"],["selbstständig","independent"],["notwendig","necessary"],["nützlich","useful"],["gefährlich","dangerous"],["umweltfreundlich","eco-friendly"],["zufrieden","satisfied"],["enttäuscht","disappointed"],["überrascht","surprised"],["neugierig","curious"],["ehrlich","honest"],["höflich","polite"],["geduldig","patient"],["erfolgreich","successful"],["berufstätig","employed"]];
+
+/* ================= RENDER ================= */
+const KEY = "a2-review-v1";
+const store = (()=>{ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } })();
+function saveLocal(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+
+const content = document.getElementById("content");
+let html = `<p class="grp">Teil 1 · Grammatik</p>`;
+function topicHtml(t,i){
+  return `<section class="topic" id="${t.id}"><h2><span class="no">${String(i+1).padStart(2,"0")}</span>${esc(t.title)}</h2><p class="why">${esc(t.why)}</p>${t.html}
+  <div class="quiz" data-q="${t.id}"><h3><span>Check yourself</span><span class="score" id="sc-${t.id}"></span></h3>
+  <ol>${t.quiz.map((q,k)=>`<li>${q[0].split("___").map((part,j,arr)=>esc(part)+(j<arr.length-1?`<input id="q-${t.id}-${k}-${j}" data-k="${k}" data-j="${j}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Answer ${k+1}">`:"")).join("")} <span class="h">(${esc(q[1])})</span><span class="fix"></span></li>`).join("")}</ol>
+  <div class="qbar"><button class="primary" data-check="${t.id}">Check answers</button><button data-reset="${t.id}">Try again</button><span class="saved" id="sv-${t.id}"></span></div></div></section>`;
+}
+G.forEach((t,i)=>{ html += topicHtml(t,i); });
+html += `<p class="grp">Teil 2 · B1 Grammatik</p>`;
+B.forEach((t,i)=>{ html += topicHtml(t, G.length+i); });
+html += `<p class="grp">Teil 3 · B2 Grammatik</p>`;
+BB.forEach((t,i)=>{ html += topicHtml(t, G.length+B.length+i); });
+const ALLG = G.concat(B, BB);
+
+html += `<p class="grp">Teil 4 · Wortschatz</p>
+<section class="topic" id="klein"><h2><span class="no">25</span>Kleine Wörter</h2><p class="why">About half of all onSET gaps are these words. Know them so well that 1–3 letters are enough to recognise them.</p>
+${Object.entries(SMALL).map(([g,ws])=>`<h3>${g}</h3><div class="words">${ws.map(w=>`<span class="w"><span class="de">${w[0]}</span> <small>${esc(w[1])}</small></span>`).join("")}</div>`).join("")}
+<h3>What the C-test shows you</h3>
+<p>Each of these words with its second half removed, as it appears in the test. When one fragment fits several words, the sentence decides.</p>
+<div class="frag" id="frag"></div>
+<h3>Fragment drill</h3>
+<div class="drill box"><div class="big" id="dq"></div><div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><input id="da" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type the whole word"><button class="primary" id="dcheck">Check</button><button id="dnext">Next</button></div><div class="res" id="dres"></div><div class="score" id="dscore"></div></div>
+</section>
+
+<section class="topic" id="verbliste"><h2><span class="no">26</span>Unregelmäßige Verben für B1</h2><p class="why">${VERBS_ALL.length} verbs, grouped by how the vowel changes. Learn one group at a time: verbs in a group change the same way. Start with the ★ verbs (${VERBS_ALL.filter(v=>v.star).length}): they appear most often in texts. Bold Perfekt forms use <b>sein</b>.</p>
+${tip("Why this matters in onSET","Story and news texts use the Präteritum and Perfekt. You will see fragments like <span class='de'>ka___ (kam), gi___ (ging), wu___ (wurde), ga___ (gab), fa___ (fand), bek___ (bekam), gefa___ (gefahren)</span>. If you know the form, the rest of the word comes easily.")}
+<label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0 12px"><input type="checkbox" id="starOnly"> Show only ★ verbs</label>
+<div id="vgroups"></div>
+${tip("Prefixes keep the pattern","<span class='de'>kommen → kam</span>, so <span class='de'>bekommen → bekam, ankommen → kam an</span>. <span class='de'>stehen → stand</span>, so <span class='de'>verstehen, bestehen, entstehen, aufstehen</span> all have <span class='de'>-stand</span>. Inseparable prefixes (be-, ver-, er-, ent-, emp-, ge-) have no ge- in the Perfekt: <span class='de'>bekommen, verstanden, erhalten</span>.")}
+<h3>Verb drill</h3>
+<div class="drill box" id="vdrill">
+ <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:14px">
+  <label><input type="radio" name="vset" value="star" checked> ★ verbs</label>
+  <label><input type="radio" name="vset" value="all"> all verbs</label>
+  <label><input type="radio" name="vset" value="wrong"> my mistakes</label>
+ </div>
+ <div class="big" style="font-size:22px;font-family:var(--ui)" id="vq"></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="va" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Your answer" style="width:18ch"><button class="primary" id="vcheck">Check</button><button id="vnext">Next</button></div>
+ <div class="res" id="vres"></div>
+ <div class="score" id="vscore"></div>
+ <span class="saved" id="vsaved"></span>
+</div>
+</section>
+
+<section class="topic" id="nomenliste"><h2><span class="no">27</span>A2-Nomen nach Themen</h2><p class="why">Always learn the article and plural with the noun. A gap in d___ depends on it.</p>
+<div class="legend"><span class="m">■ der</span><span class="f">■ die</span><span class="n">■ das</span><span class="p">■ plural only</span></div>
+${Object.entries(NOUNS).map(([g,s],i)=>`<details class="topicv" ${i===0?"open":""}><summary>${g}</summary><div class="nouns">${s.split(";").map(e=>{const [w,pl,en]=e.split("|"); const art=w.split(" ")[0]; const cls = pl==="Pl."?"p":art==="der"?"m":art==="die"?"f":"n"; return `<div class="noun"><span class="de"><span class="art ${cls}">${art}</span> ${esc(w.slice(art.length+1))} <small>${esc(pl)}</small></span><small>${esc(en)}</small></div>`;}).join("")}</div></details>`).join("")}
+</section>
+
+<section class="topic" id="adjliste"><h2><span class="no">28</span>A2-Adjektive: Gegensätze</h2><p class="why">Learn adjectives in pairs. Remember the comparison forms from topic 07.</p>
+<div class="words">${ADJ.map(a=>`<span class="w"><span class="de">${a[0]}</span> <small>${esc(ADJ_EN[a[0]]||"")}</small> <small>↔</small> <span class="de">${a[1]}</span> <small>${esc(ADJ_EN[a[1]]||"")}</small></span>`).join("")}</div>
+</section>
+<section class="topic" id="b1nomen"><h2><span class="no">29</span>B1-Nomen nach Themen</h2><p class="why">Words that come up in B1 texts about work, studies, offices, health, society and media. Learn each with its article and plural.</p>
+<div class="legend"><span class="m">■ der</span><span class="f">■ die</span><span class="n">■ das</span><span class="p">■ plural only</span></div>
+${Object.entries(NOUNS_B1).map(([g,s],i)=>`<details class="topicv" ${i===0?"open":""}><summary>${g}</summary><div class="nouns">${s.split(";").map(e=>{const [w,pl,en]=e.split("|"); const art=w.split(" ")[0]; const cls = pl==="Pl."?"p":art==="der"?"m":art==="die"?"f":"n"; return `<div class="noun"><span class="de"><span class="art ${cls}">${art}</span> ${esc(w.slice(art.length+1))} <small>${esc(pl)}</small></span><small>${esc(en)}</small></div>`;}).join("")}</div></details>`).join("")}
+</section>
+
+<section class="topic" id="b1verben"><h2><span class="no">30</span>B1-Verben, Adverbien & Adjektive</h2><p class="why">The words that make a text B1: verbs for actions and opinions, and adverbs that connect sentences.</p>
+<h3>Verbs</h3><div class="words">${VERBS_B1.map(w=>`<span class="w"><span class="de">${w[0]}</span> <small>${esc(w[1])}</small></span>`).join("")}</div>
+<h3>Adverbs & adjectives</h3><div class="words">${ADV_B1.map(w=>`<span class="w"><span class="de">${w[0]}</span> <small>${esc(w[1])}</small></span>`).join("")}</div>
+</section>
+
+<section class="topic" id="artdrill"><h2><span class="no">31</span>der, die oder das?</h2><p class="why">The most common mistake type in C-tests. Practise the article of every A2 and B1 noun on this page until it is automatic.</p>
+<div class="drill box"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:14px"><label><input type="radio" name="aset" value="all" checked> A2 + B1</label><label><input type="radio" name="aset" value="a2"> A2 only</label><label><input type="radio" name="aset" value="b1"> B1 only</label><label><input type="radio" name="aset" value="wrong"> my mistakes</label></div>
+<div class="big" style="font-family:var(--text);font-size:30px" id="aq"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap" id="abtns"><button data-art="der" style="color:var(--m);font-weight:700;width:76px">der</button><button data-art="die" style="color:var(--f);font-weight:700;width:76px">die</button><button data-art="das" style="color:var(--n);font-weight:700;width:76px">das</button></div>
+<div class="res" id="ares"></div><div class="score" id="ascore"></div><span class="saved" id="asaved"></span></div>
+</section>`;
+content.innerHTML = html;
+
+/* nav */
+const navItems = [...G.map(t=>[t.id,t.title]), ...B.map(t=>[t.id,"B1: "+t.title]), ...BB.map(t=>[t.id,"B2: "+t.title]), ["klein","Kleine Wörter"],["verbliste","Verben B1"],["nomenliste","A2-Nomen"],["adjliste","A2-Adjektive"],["b1nomen","B1-Nomen"],["b1verben","B1-Verben"],["artdrill","der/die/das"]];
+function renderNav(){
+  document.getElementById("nav").innerHTML = navItems.map(([id,t])=>{
+    const r = store[id];
+    return `<a href="#${id}" class="${r&&r.score===r.total?"done":""}">${esc(t)}${r?`<span class="st">${r.score}/${r.total}</span>`:""}</a>`;
+  }).join("");
+}
+renderNav();
+
+/* progress storage (browser) */
+let dbP = null;
+function getDb(){ if(!dbP) dbP = Promise.resolve(window.CTT ? CTT.db : null); return dbP; }
+
+function fixUmlauts(s){
+  return s.replace(/([aouAOU])['"`´:]/g,(m,c)=>({a:"ä",o:"ö",u:"ü",A:"Ä",O:"Ö",U:"Ü"}[c])).replace(/([a-zäöü])B/g,"$1ß").replace(/s'/g,"ß");
+}
+document.addEventListener("input", e=>{
+  const inp = e.target;
+  if(!(inp instanceof HTMLInputElement) || inp.type!=="text" && inp.type!=="") return;
+  const v = fixUmlauts(inp.value);
+  if(v!==inp.value){ const pos = Math.max(0, (inp.selectionStart||v.length) - (inp.value.length - v.length)); inp.value = v; try{ inp.setSelectionRange(pos,pos); }catch(err){} }
+});
+const norm = s => (s||"").normalize("NFC").trim().toLowerCase().replace(/\s+/g," ");
+document.querySelectorAll("[data-check]").forEach(b=>b.addEventListener("click", async ()=>{
+  const t = ALLG.find(x=>x.id===b.dataset.check);
+  const box = document.querySelector(`.quiz[data-q="${t.id}"]`);
+  let score = 0; const wrong = [];
+  t.quiz.forEach((q,k)=>{
+    const li = box.querySelectorAll("li")[k];
+    const inputs = [...li.querySelectorAll("input")];
+    const answer = inputs.map(i=>i.value.trim()).join(" ");
+    const ok = q[2].split("|").some(x=>norm(answer) === norm(x));
+    inputs.forEach(i=>{ i.classList.toggle("ok", ok); i.classList.toggle("bad", !ok); });
+    li.querySelector(".fix").textContent = ok ? "✓" : "→ " + q[2].split("|").join(" / ");
+    if(ok) score++; else wrong.push({q:q[0], hint:q[1], answer, correct:q[2].split("|").join(" / ")});
+  });
+  document.getElementById("sc-"+t.id).textContent = score + "/" + t.quiz.length;
+  store[t.id] = {score, total:t.quiz.length}; saveLocal(); renderNav();
+  const sv = document.getElementById("sv-"+t.id);
+  sv.textContent = "Saving…";
+  try{
+    const db = await getDb();
+    if(!db){ sv.textContent = "Not saved online"; return; }
+    await db.collection("review").doc(t.id).set({topic:t.title, score, total:t.quiz.length, wrong, at:new Date().toISOString()});
+    sv.textContent = "Saved";
+  }catch(e){ sv.textContent = "Not saved online"; }
+}));
+document.querySelectorAll("[data-reset]").forEach(b=>b.addEventListener("click",()=>{
+  const box = document.querySelector(`.quiz[data-q="${b.dataset.reset}"]`);
+  box.querySelectorAll("input").forEach(i=>{ i.value=""; i.classList.remove("ok","bad"); });
+  box.querySelectorAll(".fix").forEach(f=>f.textContent="");
+  document.getElementById("sc-"+b.dataset.reset).textContent = "";
+  const first = box.querySelector("input"); if(first) first.focus();
+}));
+document.querySelectorAll(".quiz input").forEach(inp=>inp.addEventListener("keydown",e=>{
+  if(e.key!=="Enter") return; e.preventDefault();
+  const all = [...inp.closest(".quiz").querySelectorAll("input")]; const n = all[all.indexOf(inp)+1];
+  if(n) n.focus(); else inp.closest(".quiz").querySelector("[data-check]").click();
+}));
+
+/* verb tables */
+function renderVerbs(){
+  const only = document.getElementById("starOnly").checked;
+  document.getElementById("vgroups").innerHTML = VGROUPS.map(g=>{
+    const rows = g.list.filter(v=>!only||v.star);
+    if(!rows.length) return "";
+    return `<h3>${esc(g.p)} <span class="saved" style="font-weight:400">e.g. ${esc(g.ex)}</span></h3>` +
+      tbl(["Infinitiv","er / sie / es","Präteritum","Perfekt","meaning"], rows.map(v=>[(v.star?"★ ":"")+v.inf, v.er, `<b>${v.prt}</b>`, v.perf.startsWith("ist")?`<b>${v.perf}</b>`:v.perf, `<span style="font-family:var(--ui);font-size:13px;color:var(--muted)">${esc(v.en)}</span>`]));
+  }).join("");
+}
+document.getElementById("starOnly").addEventListener("change", renderVerbs);
+renderVerbs();
+
+/* verb drill */
+const FORMS = [["er","er / sie / es (Präsens)"],["prt","Präteritum (er / sie / es)"],["perf","Perfekt (er / sie / es) with hat / ist"]];
+const vs = {ok:0, n:0, wrong:[], cur:null, form:null, answered:false, id:"v"+Date.now().toString(36)};
+try{ vs.wrongSet = JSON.parse(localStorage.getItem("a2-verbs-wrong")) || []; }catch(e){ vs.wrongSet = []; }
+function vPool(){
+  const mode = document.querySelector('input[name="vset"]:checked').value;
+  if(mode==="all") return VERBS_ALL;
+  if(mode==="wrong"){ const p = VERBS_ALL.filter(v=>vs.wrongSet.includes(v.inf)); return p.length?p:VERBS_ALL.filter(v=>v.star); }
+  return VERBS_ALL.filter(v=>v.star);
+}
+function vNext(){
+  const pool = vPool();
+  vs.cur = pool[Math.floor(Math.random()*pool.length)];
+  vs.form = FORMS[Math.floor(Math.random()*FORMS.length)];
+  vs.answered = false;
+  document.getElementById("vq").innerHTML = `<span class="de" style="font-size:26px">${esc(vs.cur.inf)}</span> <span class="saved">(${esc(vs.cur.en)})</span><br><span style="font-size:15px;color:var(--muted)">→ ${esc(vs.form[1])}</span>`;
+  const a = document.getElementById("va"); a.value=""; a.focus({preventScroll:true});
+  document.getElementById("vres").textContent = vs.form[0]==="perf" ? "Example: ist gefahren / hat gemacht" : "";
+}
+async function vCheck(){
+  if(vs.answered) return vNext();
+  const a = norm(document.getElementById("va").value); if(!a) return;
+  const right = vs.cur[vs.form[0]];
+  let ok = a === norm(right);
+  let note = "";
+  if(!ok && vs.form[0]==="perf" && norm(right).endsWith(" "+a)){ note = " You need the helper verb too (hat or ist)."; }
+  vs.n++; vs.answered = true;
+  if(ok){ vs.ok++; vs.wrongSet = vs.wrongSet.filter(x=>x!==vs.cur.inf); }
+  else { vs.wrong.push({verb:vs.cur.inf, form:vs.form[0], answer:a, correct:right}); if(!vs.wrongSet.includes(vs.cur.inf)) vs.wrongSet.push(vs.cur.inf); }
+  try{ localStorage.setItem("a2-verbs-wrong", JSON.stringify(vs.wrongSet)); }catch(e){}
+  const c = vs.cur;
+  document.getElementById("vres").innerHTML = (ok?`<span style="color:var(--ok)">✓ Right.</span>`:`<span style="color:var(--bad)">✗ ${esc(right)}</span>${esc(note)}`) +
+    `<br><span class="de">${esc(c.inf)} – ${esc(c.er)} – ${esc(c.prt)} – ${esc(c.perf)}</span> · Enter for next`;
+  document.getElementById("vscore").textContent = `${vs.ok}/${vs.n} correct this session · ${vs.wrongSet.length} verbs on your mistake list`;
+  const sv = document.getElementById("vsaved");
+  try{
+    const db = await getDb();
+    if(!db){ sv.textContent = "Not saved online"; return; }
+    await db.collection("verbs").doc(vs.id).set({at:new Date().toISOString(), ok:vs.ok, n:vs.n, wrong:vs.wrong, mistakeList:vs.wrongSet});
+    sv.textContent = "Saved";
+  }catch(e){ sv.textContent = "Not saved online"; }
+}
+document.getElementById("vnext").onclick = vNext;
+document.getElementById("vcheck").onclick = vCheck;
+document.getElementById("va").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); vCheck(); } });
+document.querySelectorAll('input[name="vset"]').forEach(r=>r.addEventListener("change", vNext));
+vNext();
+document.getElementById("va").blur();
+
+/* article drill */
+const ARTS = [];
+function addNouns(obj, lvl){ Object.values(obj).forEach(s=>s.split(";").forEach(e=>{ const [w,pl,en]=e.split("|"); if(pl==="Pl.") return; const sp=w.indexOf(" "); ARTS.push({art:w.slice(0,sp), noun:w.slice(sp+1), pl, en, lvl}); })); }
+addNouns(NOUNS,"a2"); addNouns(NOUNS_B1,"b1");
+const as = {ok:0, n:0, wrong:[], cur:null, done:false, id:"a"+Date.now().toString(36)};
+try{ as.wrongSet = JSON.parse(localStorage.getItem("a2-art-wrong")) || []; }catch(e){ as.wrongSet = []; }
+function aPool(){
+  const m = document.querySelector('input[name="aset"]:checked').value;
+  if(m==="wrong"){ const p = ARTS.filter(x=>as.wrongSet.includes(x.noun)); return p.length?p:ARTS; }
+  return m==="all" ? ARTS : ARTS.filter(x=>x.lvl===m);
+}
+function aNext(){
+  const p = aPool(); as.cur = p[Math.floor(Math.random()*p.length)]; as.done = false;
+  document.getElementById("aq").innerHTML = `___ ${esc(as.cur.noun)} <span class="saved" style="font-family:var(--ui)">(${esc(as.cur.en)})</span>`;
+  document.getElementById("ares").textContent = "Choose the article, or press 1 / 2 / 3.";
+}
+async function aAnswer(art){
+  if(as.done){ aNext(); return; }
+  const c = as.cur, ok = art===c.art; as.done = true; as.n++;
+  if(ok){ as.ok++; as.wrongSet = as.wrongSet.filter(x=>x!==c.noun); }
+  else { as.wrong.push({noun:c.noun, answer:art, correct:c.art}); if(!as.wrongSet.includes(c.noun)) as.wrongSet.push(c.noun); }
+  try{ localStorage.setItem("a2-art-wrong", JSON.stringify(as.wrongSet)); }catch(e){}
+  const cls = c.art==="der"?"m":c.art==="die"?"f":"n";
+  document.getElementById("aq").innerHTML = `<span class="${cls}">${c.art}</span> ${esc(c.noun)} <span class="saved" style="font-family:var(--ui)">plural ${esc(c.pl)}</span>`;
+  document.getElementById("ares").innerHTML = (ok?`<span style="color:var(--ok)">✓ Right.</span>`:`<span style="color:var(--bad)">✗ It's ${c.art}.</span>`) + " Click any button or press Enter for the next word.";
+  document.getElementById("ascore").textContent = `${as.ok}/${as.n} correct · ${as.wrongSet.length} nouns on your mistake list`;
+  const sv = document.getElementById("asaved");
+  try{ const db = await getDb(); if(!db){ sv.textContent="Not saved online"; return; }
+    await db.collection("articles").doc(as.id).set({at:new Date().toISOString(), ok:as.ok, n:as.n, wrong:as.wrong, mistakeList:as.wrongSet});
+    sv.textContent = "Saved"; }catch(e){ sv.textContent="Not saved online"; }
+}
+document.querySelectorAll("[data-art]").forEach(b=>b.addEventListener("click",()=>aAnswer(b.dataset.art)));
+document.querySelectorAll('input[name="aset"]').forEach(r=>r.addEventListener("change",aNext));
+document.addEventListener("keydown",e=>{
+  const sec = document.getElementById("artdrill"); const r = sec.getBoundingClientRect();
+  if(r.top > window.innerHeight || r.bottom < 0) return;
+  if(e.target instanceof HTMLInputElement && e.target.type==="text") return;
+  if(e.key==="1") aAnswer("der"); else if(e.key==="2") aAnswer("die"); else if(e.key==="3") aAnswer("das"); else if(e.key==="Enter" && as.done) aNext();
+});
+aNext();
+
+/* fragments */
+const words = [...new Set(Object.values(SMALL).flat().map(w=>w[0]).filter(w=>w.length>=2))];
+const groups = {};
+words.forEach(w=>{ const g = w.slice(0, Math.floor(w.length/2)); (groups[g] = groups[g] || []).push(w); });
+const gkeys = Object.keys(groups).sort((a,b)=> groups[b].length - groups[a].length || a.localeCompare(b));
+document.getElementById("frag").innerHTML = gkeys.map(g=>`<div><b>${esc(g)}___</b> ${groups[g].map(esc).join(", ")}</div>`).join("");
+let dCur = null, dOk = 0, dN = 0;
+function dNext(){
+  dCur = gkeys[Math.floor(Math.random()*gkeys.length)];
+  document.getElementById("dq").innerHTML = esc(dCur)+"<span>&nbsp;</span>";
+  document.getElementById("da").value = ""; document.getElementById("dres").textContent = "Type a whole word that starts like this.";
+  document.getElementById("da").focus({preventScroll:true});
+}
+function dCheck(){
+  const a = norm(document.getElementById("da").value); if(!a) return;
+  const opts = groups[dCur]; const ok = opts.includes(a);
+  dN++; if(ok) dOk++;
+  document.getElementById("dres").innerHTML = (ok?`<span style="color:var(--ok)">✓ Right.</span> `:`<span style="color:var(--bad)">✗ Not this one.</span> `) + "All words for this fragment: <b>" + opts.map(esc).join(", ") + "</b>";
+  document.getElementById("dscore").textContent = `${dOk}/${dN} correct`;
+}
+document.getElementById("dnext").onclick = dNext;
+document.getElementById("dcheck").onclick = dCheck;
+document.getElementById("da").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(document.getElementById("dres").textContent.startsWith("Type")) dCheck(); else dNext(); } });
+dCur = gkeys[0];
+document.getElementById("dq").innerHTML = esc(dCur)+"<span>&nbsp;</span>";
+document.getElementById("dres").textContent = "Type a whole word that starts like this.";
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Practice · C-Test Trainer</title>
+<meta name="description" content="Exercises for the most common C-test mistakes: past tense, plurals, articles and case, look-alike words, plus mini C-tests with translations.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css">
+<script src="assets/common.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: exercise sheets in one column, a set switcher at the top */
+.sets{display:flex;gap:8px;flex-wrap:wrap}
+.sets button.on{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+section.text{scroll-margin-top:16px}
+.thead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.thead h2{font-size:20px;text-transform:none;letter-spacing:0;color:var(--ink);margin:0;text-wrap:balance}
+.lvl{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:4px;background:var(--paper);border:1px solid var(--line);color:var(--muted)}
+.redo{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:14px 16px}
+.redo ol{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:10px}
+.redo li{font-family:var(--text);font-size:16.5px;line-height:1.9}
+.redo input{font-family:var(--mono);font-size:15px;border:0;border-bottom:2px solid var(--mark-line);background:var(--mark);color:var(--ink);padding:1px 4px;border-radius:3px 3px 0 0;max-width:100%}
+.redo input.ok{background:var(--ok-bg);border-color:var(--ok)}
+.redo input.bad{background:var(--bad-bg);border-color:var(--bad)}
+.redo .fix{font-family:var(--mono);font-size:13px;color:var(--ok);margin-left:6px}
+.redo .src{font-family:var(--ui);font-size:12.5px;color:var(--muted)}
+.de{font-family:var(--text);font-size:18px;line-height:1.95}
+.after{margin-top:4px;font-family:var(--ui)}
+.after .en,.en{font-size:14px;color:var(--muted)}
+.why{font-size:13.5px;color:var(--accent);font-family:var(--ui)}
+.opts{display:inline-flex;gap:6px;margin-left:6px;vertical-align:middle;flex-wrap:wrap}
+.opt{font-family:var(--mono);font-size:14px;padding:3px 10px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.opt.sel{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.chosen{font-family:var(--mono);font-size:15px;background:var(--mark);border-bottom:2px solid var(--mark-line);padding:0 4px;border-radius:3px 3px 0 0}
+.chosen.okc{background:var(--ok-bg);border-color:var(--ok)}
+.chosen.badc{background:var(--bad-bg);border-color:var(--bad)}
+.g .r{background:var(--ok-bg);color:var(--ok);padding:0 3px;border-radius:3px;font-family:var(--mono);font-size:14px}
+.qbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.qbar button{font-family:var(--ui);font-size:14px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px}
+.qbar button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.saved{font-size:12px;color:var(--muted)}
+#practice{display:flex;flex-direction:column;gap:28px}
+</style>
+</head>
+<body>
+<main class="page">
+  <div>
+    <h1>Practice</h1>
+    <p class="lead">Short exercises for the mistakes C-test learners make most: past tense, plurals, articles and case, and words that only look alike. Every exercise shows the translation and the rule after you check. Each set ends with two mini C-tests.</p>
+  </div>
+  <div class="sets" role="tablist" aria-label="Exercise sets">
+    <button class="btn on" data-set="1" role="tab">Set 1 · basics</button>
+    <button class="btn" data-set="2" role="tab">Set 2 · more patterns</button>
+  </div>
+  <div id="practice"></div>
+</main>
+<script>
+(function(){
+"use strict";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fixUmlauts = CTT.fixUmlauts;
+function getDb(){ return Promise.resolve(CTT.db); }
+const P1 = [
+{id:"p1", title:"1. Past tense of irregular verbs", why:"The most common mistake type in C-tests. Type the Präteritum (er/sie/es or the form the subject needs).", type:"fill", items:[
+ ["Als Kind ___ ich in Taschkent.","wohnen","wohnte","As a child I lived in Tashkent.","Regular verb: stem + -te (wohn-te)."],
+ ["Gestern ___ ich einen Brief von meiner Oma.","bekommen","bekam","Yesterday I got a letter from my grandma.","bekommen – bekam – bekommen"],
+ ["Der Zug ___ pünktlich in Berlin an.","ankommen","kam","The train arrived in Berlin on time.","kommen – kam; the separable prefix an goes to the end."],
+ ["Wir ___ mit dem Bus zur Uni.","fahren","fuhren","We went to university by bus.","fahren – fuhr; wir → fuhren"],
+ ["Ich ___ meinen Schlüssel unter dem Sofa.","finden","fand","I found my key under the sofa.","finden – fand – gefunden"],
+ ["Mit 18 ___ sie ihr Dorf.","verlassen","verließ","At 18 she left her village.","verlassen – verließ – verlassen (type s' for ß)"],
+ ["Im Winter ___ die Temperaturen auf minus 20 Grad.","sinken","sanken","In winter temperatures fell to minus 20 degrees.","sinken – sank; plural subject → sanken"],
+ ["Die Reise ___ drei Stunden.","dauern","dauerte","The trip took three hours.","Regular: dauer-te"],
+ ["Früher ___ ich niemanden in Korea.","kennen","kannte","In the past I didn't know anyone in Korea.","Mixed verb: kennen – kannte – gekannt"],
+ ["Er ___ ins Kino, aber ich ___ zu Hause.","gehen, bleiben","ging blieb","He went to the cinema, but I stayed at home.","gehen – ging; bleiben – blieb"],
+ ["Sie ___ einen langen Brief.","schreiben","schrieb","She wrote a long letter.","schreiben – schrieb – geschrieben"],
+ ["Wir ___ den Film im Kino.","sehen","sahen","We saw the film at the cinema.","sehen – sah; wir → sahen"],
+ ["Der Lehrer ___ sehr schnell.","sprechen","sprach","The teacher spoke very fast.","sprechen – sprach – gesprochen"],
+ ["Ich ___ ein Taxi zum Bahnhof.","nehmen","nahm","I took a taxi to the station.","nehmen – nahm – genommen"],
+ ["Früher ___ es hier viele Geschäfte.","es gibt","gab","There used to be lots of shops here.","es gibt – es gab"],
+ ["Die Nachricht ___ sich schnell.","sich verbreiten","verbreitete","The news spread quickly.","Stem ends in -t → -ete: verbreit-ete"]]},
+{id:"p2", title:"2. Plural nouns", why:"If the article or the verb is plural, the noun must be plural too. Type the plural.", type:"fill", items:[
+ ["Auf den ___ lag viel Schnee.","die Straße","Straßen","There was a lot of snow on the streets.","die Straße → die Straßen (-n)"],
+ ["Ich habe drei ___ gelesen.","das Buch","Bücher","I have read three books.","das Buch → die Bücher (¨-er)"],
+ ["Die ___ sind im Internet oft günstiger.","der Preis","Preise","Prices are often cheaper online.","der Preis → die Preise (-e)"],
+ ["In der Stadt gibt es viele ___.","das Geschäft","Geschäfte","There are lots of shops in town.","das Geschäft → die Geschäfte (-e)"],
+ ["Er erinnert sich an viele ___.","das Ding","Dinge","He remembers many things.","das Ding → die Dinge (-e)"],
+ ["Sie hat schöne ___ an ihre Kindheit.","die Erinnerung","Erinnerungen","She has lovely memories of her childhood.","-ung nouns → -ungen"],
+ ["In den ___ wohnen viele junge Leute.","die Großstadt","Großstädten","Many young people live in the big cities.","Stadt → Städte, and Dativ plural adds -n: in den Großstädten"],
+ ["Die ___ spielen im Garten.","das Kind","Kinder","The children are playing in the garden.","das Kind → die Kinder (-er)"],
+ ["Ich habe zwei ___.","der Bruder","Brüder","I have two brothers.","der Bruder → die Brüder (¨)"],
+ ["Wir besuchen unsere ___.","der Freund","Freunde","We're visiting our friends.","der Freund → die Freunde (-e)"],
+ ["Ich spreche mit den ___.","der Student","Studenten","I'm talking with the students.","der Student → die Studenten (-en)"],
+ ["Alle ___ im Wohnheim sind klein.","das Zimmer","Zimmer","All the rooms in the dorm are small.","-er nouns often don't change: das Zimmer → die Zimmer"]]},
+{id:"p3", title:"3. Look-alike small words", why:"Choose the word that fits. Read the rest of the sentence first: it tells you which one is right.", type:"choice", items:[
+ ["Ich gehe ___ ins Kino.",["ob","oft"],"oft","I often go to the cinema.","oft = often. ob (whether) starts a clause with the verb at the end."],
+ ["Ich weiß nicht, ___ er heute kommt.",["ob","oft"],"ob","I don't know whether he's coming today.","ob = whether; the verb (kommt) is at the end."],
+ ["Ich habe Angst ___ dem Hund.",["von","vor"],"vor","I'm afraid of the dog.","Fixed: Angst haben vor."],
+ ["Das Geschenk ist ___ meiner Mutter.",["von","vor"],"von","The present is from my mother.","von = from / by."],
+ ["___ dem Essen wasche ich mir die Hände.",["Von","Vor"],"Vor","Before eating I wash my hands.","vor = before."],
+ ["Das Buch liegt ___ dem Tisch.",["an","auf"],"auf","The book is lying on the table.","auf = on top of a surface."],
+ ["Das Bild hängt ___ der Wand.",["an","auf"],"an","The picture is hanging on the wall.","an = on / at a vertical surface."],
+ ["Der Kurs beginnt ___ neun Uhr.",["um","und"],"um","The course starts at nine.","um + clock time."],
+ ["Ich bleibe zu Hause, ___ ich bin krank.",["der","denn"],"denn","I'm staying at home because I'm ill.","denn = because, normal word order."],
+ ["Ich hoffe, ___ du bald kommst.",["das","dass"],"dass","I hope that you come soon.","dass + verb at the end."],
+ ["___ Buch ist sehr interessant.",["Das","Dass"],"Das","The book is very interesting.","das = article (das Buch)."],
+ ["Ich wohne ___ Zentrum.",["in","im"],"im","I live in the centre.","das Zentrum → in dem = im."],
+ ["Ich wohne ___ Seoul.",["in","im"],"in","I live in Seoul.","Cities have no article → in."],
+ ["Ich gehe heute ___ Arzt.",["zum","zur"],"zum","I'm going to the doctor today.","der Arzt → zu dem = zum."],
+ ["Ich fahre ___ Uni.",["zum","zur"],"zur","I'm going to university.","die Uni → zu der = zur."],
+ ["___ Montag habe ich frei.",["Am","An"],"Am","On Monday I'm free.","am + day of the week."],
+ ["Das Haus ___ gerade gebaut.",["wir","wird"],"wird","The house is being built right now.","Passive: wird + Partizip II."]]},
+{id:"p4", title:"4. Articles and case", why:"Find the noun's gender, then the case. Type the missing word.", type:"fill", items:[
+ ["Er fährt gegen ___ Baum.","ein, der Baum","einen","He drives into a tree.","gegen always takes Akkusativ: einen Baum."],
+ ["Ich vermisse ___ sehr.","du","dich","I miss you very much.","vermissen + Akkusativ → dich"],
+ ["Kannst du ___ helfen?","ich","mir","Can you help me?","helfen + Dativ → mir"],
+ ["___ Wetterbericht sagt Regen.","der / die / das","Der","The weather report says rain.","der Bericht → der Wetterbericht (Nominativ)"],
+ ["Wir wohnen in ___ kleinen Dorf.","ein, das Dorf","einem","We live in a small village.","in + where? → Dativ: einem Dorf"],
+ ["Mein Großvater? ___ ist 80 Jahre alt.","pronoun","Er","My grandfather? He is 80.","A man = er (never es)."],
+ ["Ich fahre mit ___ Fahrrad.","mein, das Fahrrad","meinem","I ride my bike.","mit + Dativ: meinem Fahrrad"],
+ ["Ich habe ___ Bruder.","ein, der Bruder","einen","I have a brother.","haben + Akkusativ: einen Bruder"],
+ ["Ich gebe ___ Kind ein Eis.","das Kind","dem","I give the child an ice cream.","to whom? → Dativ: dem Kind"],
+ ["In ___ Dörfern gibt es keine Ärzte.","die, plural","den","There are no doctors in the villages.","Dativ plural → den Dörfern"],
+ ["Wir sprechen mit ___ Lehrerin.","unser, die Lehrerin","unserer","We're talking with our teacher.","mit + Dativ, feminine → unserer"],
+ ["Hast du heute ___ Zeit?","kein, die Zeit","keine","Don't you have any time today?","die Zeit → keine Zeit"]]}
+];
+const C1 = [
+{id:"c1", title:"5. Mini C-test: Mein erster Winter in Korea", lvl:"A2/B1",
+ first:"Mein erster Winter in Korea war sehr kalt.",
+ mid:"Im Dezember fiel plötzlich viel Schnee, und auf den Straßen lag morgens Eis. An einem Montag fuhr ich mit dem Fahrrad zur Uni, obwohl meine Freundin mich vor dem Eis gewarnt hatte. An einer Kreuzung konnte ich nicht rechtzeitig bremsen und fiel hin. Zum Glück war ich nicht verletzt. Ein netter Mann half mir und brachte mein Fahrrad nach Hause. Seitdem nehme ich im Winter immer den Bus.",
+ last:"Und ich höre jetzt öfter auf meine Freundin.",
+ en:["My first winter in Korea was very cold.","In December a lot of snow suddenly fell, and in the mornings there was ice on the streets.","One Monday I rode my bike to university, although my friend had warned me about the ice.","At a crossroads I couldn't brake in time and fell over.","Luckily I wasn't hurt.","A kind man helped me and took my bike home.","Since then I always take the bus in winter.","And now I listen to my friend more often."]},
+{id:"c2", title:"6. Mini C-test: Einkaufen früher und heute", lvl:"B1",
+ first:"Früher kauften die Menschen fast alles in kleinen Geschäften.",
+ mid:"Heute bestellen viele Leute ihre Sachen oft im Internet, weil es bequem ist. Die Preise sind dort meistens niedriger, denn die Firmen brauchen keine teuren Läden. Allerdings weiß man nicht immer, ob die Qualität gut ist. Vor dem Kauf kann man die Kleidung nicht anprobieren, deshalb schicken viele Kunden die Pakete zurück. In den Städten schließen deshalb immer mehr kleine Geschäfte. Das finden viele Menschen schade.",
+ last:"Sie wünschen sich mehr Leben in den Innenstädten.",
+ en:["In the past, people bought almost everything in small shops.","Today many people often order their things online because it's convenient.","Prices there are usually lower, because the companies don't need expensive shops.","However, you don't always know whether the quality is good.","You can't try clothes on before buying them, so many customers send the parcels back.","That's why more and more small shops are closing in the cities.","Many people think that's a pity.","They wish for more life in the town centres."]}
+];
+const P2 = [
+{id:"p1", title:"1. Past tense: more verbs", why:"Stories in C-tests are in the past. Type the Präteritum (the form the subject needs).", type:"fill", items:[
+ ["Der Kellner ___ uns die Speisekarte.","bringen","brachte","The waiter brought us the menu.","bringen – brachte – gebracht (mixed verb). Not 'braucht': that's brauchen (to need)."],
+ ["Meine Mutter ___ einen Fisch.","bestellen","bestellte","My mother ordered fish.","Regular verb: bestell + te."],
+ ["Ich ___ eine Suppe.","essen","aß","I had a soup.","essen – aß – gegessen. Type s' for ß."],
+ ["Sie ___ lange am Gepäckband.","warten","wartete","She waited a long time at the baggage carousel.","The stem ends in -t, so add -ete: wart-ete."],
+ ["Der Koffer ___ nicht.","kommen","kam","The suitcase didn't come.","kommen – kam – ist gekommen."],
+ ["Man ___ ihr das Problem.","erklären","erklärte","They explained the problem to her.","erklär + te. 'erklärt' is present tense."],
+ ["Sie ___ etwas Geld von der Fluggesellschaft.","bekommen","bekam","She got some money from the airline.","bekommen – bekam – bekommen. One of the most frequent past forms in C-test stories."],
+ ["Früher ___ ich Mathe langweilig.","finden","fand","I used to find maths boring.","finden – fand – gefunden. etwas langweilig finden = to find something boring."],
+ ["Das ___ sich, als der neue Lehrer kam.","ändern","änderte","That changed when the new teacher came.","Regular: änder + te."],
+ ["Er ___ nie über Fehler.","lachen","lachte","He never laughed at mistakes.","Regular: lach + te."],
+ ["Alle Schüler ___ die Aufgabe verstanden.","haben, past","hatten","All the pupils had understood the task.","alle = plural → hatten."],
+ ["Im 17. Jahrhundert ___ die ersten Cafés.","eröffnen","eröffneten","In the 17th century the first cafés opened.","The subject (die Cafés) is plural → eröffneten."],
+ ["Der Kaffee ___ sich schnell in Europa.","sich verbreiten","verbreitete","Coffee spread quickly in Europe.","verbreit + ete. Don't confuse it with verbringen (to spend time)."],
+ ["Sie ___ ein Formular ___.","ausfüllen","füllte aus","She filled in a form.","Separable verb: füllte … aus."],
+ ["Ich ___ die Antwort nicht.","wissen","wusste","I didn't know the answer.","wissen – wusste – gewusst."],
+ ["Der Koffer ___ drei Tage am Flughafen.","stehen","stand","The suitcase stood at the airport for three days.","stehen – stand – gestanden."]]},
+{id:"p2", title:"2. Articles and pronouns", why:"Find the noun's gender first (-ung, -schaft, -keit = die; a person in -er = der), then the case.", type:"fill", items:[
+ ["___ Kellner war sehr freundlich.","der / die / das","Der","The waiter was very friendly.","People ending in -er (Kellner, Lehrer) are der."],
+ ["Nach ___ Landung wartete sie lange.","the, after nach","der","After landing she waited a long time.","Landung ends in -ung → die; nach + Dativ → der."],
+ ["Am Schalter ___ Fluggesellschaft war niemand.","the, Genitiv","der","There was nobody at the airline counter.","Gesellschaft ends in -schaft → die; Genitiv → der."],
+ ["Sie sucht ___ Koffer.","her","ihren","She's looking for her suitcase.","ihr + masculine Akkusativ (der Koffer) → ihren."],
+ ["Man erklärte ___, dass der Koffer weg war.","to her","ihr","They told her that the suitcase was gone.","Dativ of sie → ihr. Not 'ich'."],
+ ["Er erklärte ___ Aufgabe genau.","every","jede","He explained every task carefully.","die Aufgabe, Akkusativ → jede."],
+ ["___ Prozess ist nicht einfach.","this","Dieser","This process isn't easy.","der Prozess, Nominativ → dieser."],
+ ["Die Cafés, ___ schnell beliebt wurden, waren Treffpunkte.","relative pronoun","die","The cafés, which quickly became popular, were meeting places.","Plural noun (die Cafés) → relative pronoun die."],
+ ["Die Frau, ___ ich geholfen habe, ist meine Nachbarin.","relative, Dativ","der","The woman I helped is my neighbour.","helfen + Dativ, die Frau → der."],
+ ["___ Öffentlichkeit versteht das nicht.","der / die / das","Die","The public doesn't understand this.","Nouns ending in -keit are die."],
+ ["Wer ___ Hund hat, geht oft spazieren.","a, der Hund","einen","Anyone who has a dog goes for lots of walks.","haben + Akkusativ: der Hund → einen Hund."],
+ ["Ich warte auf ___ Bus.","the, der Bus","den","I'm waiting for the bus.","warten auf + Akkusativ → den."]]},
+{id:"p3", title:"3. Plural and agreement", why:"A plural subject needs a plural verb, and after a plural article the noun is plural too. Type the form in brackets in the right shape.", type:"fill", items:[
+ ["Am beliebtesten sind ___.","die Katze","Katzen","Cats are the most popular.","die Katze → die Katzen."],
+ ["Er spielt mit kleinen ___.","das Tier","Tieren","He plays with small animals.","Tier → Tiere; Dativ plural adds -n → Tieren."],
+ ["Er bekam schlechte ___.","die Note","Noten","He got bad marks.","die Note → die Noten."],
+ ["In vielen ___ gibt es Cafés.","die Stadt","Städten","There are cafés in many cities.","Stadt → Städte; Dativ plural + n → Städten."],
+ ["Die Mediziner ___ vor zu viel Sitzen.","warnen, present","warnen","Doctors warn about sitting too much.","Plural subject → verb ending -en."],
+ ["Die Preise ___ jedes Jahr.","steigen, present","steigen","Prices go up every year.","Plural subject → steigen."],
+ ["Viele Studenten ___ wenig Geld.","haben, present","haben","Many students have little money.","Plural subject → haben."],
+ ["Die ___ sind sehr laut.","der Nachbar","Nachbarn","The neighbours are very loud.","der Nachbar → die Nachbarn."],
+ ["Ich habe zwei ___.","die Schwester","Schwestern","I have two sisters.","die Schwester → die Schwestern."],
+ ["Er hat keine ___.","das Problem","Probleme","He has no problems.","das Problem → die Probleme."],
+ ["Die Kinder spielen mit den ___.","der Hund","Hunden","The children are playing with the dogs.","Hunde + n (Dativ plural) → Hunden."],
+ ["Viele ___ arbeiten neben dem Studium.","der Student","Studenten","Many students work alongside their studies.","n-noun: der Student → die Studenten."]]},
+{id:"p4", title:"4. Words that only look similar", why:"These words look similar but mean something else. Choose the word that makes sense.", type:"choice", items:[
+ ["Ich brauche mehr ___. Ich sitze zu viel.",["Bewegung","Bewerbung"],"Bewegung","I need more exercise. I sit too much.","Bewegung = exercise, movement · Bewerbung = job application."],
+ ["Ich schreibe eine ___ für die neue Stelle.",["Bewegung","Bewerbung"],"Bewerbung","I'm writing an application for the new job.","Bewerbung = job application."],
+ ["Ein Hund ist ein ___.",["Tier","Tisch"],"Tier","A dog is an animal.","Tier = animal · Tisch = table."],
+ ["Er brachte uns ___ die Speisekarte.",["Sofa","sofort"],"sofort","He brought us the menu immediately.","sofort = immediately · das Sofa = sofa."],
+ ["Der Kaffee ___ aus Äthiopien.",["Stadt","stammt"],"stammt","Coffee comes from Ethiopia.","stammen aus = to come from · die Stadt = city."],
+ ["Der Zug fährt sehr ___.",["schön","schnell"],"schnell","The train goes very fast.","schnell = fast · schön = beautiful."],
+ ["Wir fliegen mit dem ___ nach Berlin.",["Flugzeug","Flughafen"],"Flugzeug","We're flying to Berlin by plane.","das Flugzeug = plane."],
+ ["Wir warten am ___ auf unseren Flug.",["Flugzeug","Flughafen"],"Flughafen","We're waiting for our flight at the airport.","der Flughafen = airport."],
+ ["Wir ___ den Sommer am Meer.",["verbreiten","verbringen"],"verbringen","We're spending the summer by the sea.","verbringen = to spend (time)."],
+ ["Die Nachricht ___ sich schnell.",["verbreitet","verbringt"],"verbreitet","The news spreads quickly.","sich verbreiten = to spread."],
+ ["___ ich ein Kind war, wohnte ich in Taschkent.",["Als","Am"],"Als","When I was a child, I lived in Tashkent.","als = when (once in the past), verb at the end."],
+ ["Er erklärte es so lange, ___ alle es verstanden.",["bei","bis"],"bis","He explained it until everyone understood.","bis = until · bei = at / with."],
+ ["Ich wohne ___ meinem Onkel.",["bei","bis"],"bei","I live at my uncle's.","bei + Dativ = at someone's place."],
+ ["Sie schläft noch, deshalb ___ ich ganz leise.",["bin","bei"],"bin","She's still asleep, so I'm very quiet.","bin = am (ich bin). After deshalb comes the verb."],
+ ["Er geht viel spazieren und bleibt ___ fit.",["sie","so"],"so","He goes for lots of walks and so stays fit.","so = in this way."],
+ ["Ich trinke Tee, ___ Kaffee mag ich nicht.",["denn","dann"],"denn","I drink tea, because I don't like coffee.","denn = because · dann = then."]]}
+];
+const C2 = [
+{id:"c3", title:"5. Mini C-test: Ein Abend im Restaurant", lvl:"A2/B1",
+ first:"Letzte Woche feierten wir den Geburtstag meines Vaters in einem Restaurant.",
+ mid:"Der Kellner brachte uns zuerst die Speisekarte und empfahl uns den Fisch des Tages. Mein Vater bestellte ein Steak, meine Mutter nahm eine Suppe. Leider kam das Essen erst nach einer Stunde, weil die Küche sehr viel zu tun hatte. Der Kellner entschuldigte sich und brachte uns kostenlose Getränke. Am Ende waren alle zufrieden, denn das Essen schmeckte wirklich hervorragend.",
+ last:"Nächstes Jahr wollen wir wieder dorthin gehen.",
+ en:["Last week we celebrated my father's birthday in a restaurant.","First the waiter brought us the menu and recommended the fish of the day.","My father ordered a steak, and my mother had a soup.","Unfortunately the food only came after an hour, because the kitchen was very busy.","The waiter apologised and brought us free drinks.","In the end everyone was happy, because the food tasted really excellent.","Next year we want to go there again."]},
+{id:"c4", title:"6. Mini C-test: Haustiere und Gesundheit", lvl:"B1",
+ first:"Viele Studien zeigen, dass Haustiere gut für die Gesundheit sind.",
+ mid:"Wer einen Hund hat, bewegt sich mehr, weil er mehrmals am Tag spazieren gehen muss. Auch Katzen und andere kleine Tiere können helfen, denn sie reduzieren Stress und machen ihre Besitzer glücklicher. Besonders für ältere Menschen, die allein leben, ist ein Tier ein wichtiger Begleiter. Allerdings sollte man vorher genau überlegen, ob man genug Zeit und Geld für ein Haustier hat.",
+ last:"Ein Tier ist schließlich kein Spielzeug.",
+ en:["Many studies show that pets are good for your health.","Anyone who has a dog moves more, because they have to go for a walk several times a day.","Cats and other small animals can help too, because they reduce stress and make their owners happier.","Especially for older people who live alone, a pet is an important companion.","However, you should think carefully beforehand about whether you have enough time and money for a pet.","After all, an animal isn't a toy."]}
+];
+let P = P1, C = C1, PX = "";
+const norm2 = s => (s||"").normalize("NFC").trim().toLowerCase().replace(/\s+/g," ");
+async function savePractice(id, data, el){
+  el.textContent = "Saving…";
+  try{ const db = await getDb(); await db.collection("practice").doc(id).set(Object.assign({at:new Date().toISOString()}, data)); el.textContent = "Saved"; }
+  catch(e){ el.textContent = "Could not save"; }
+}
+function renderPractice(){
+let ph = "";
+P.forEach(sec=>{
+  ph += `<section class="text" id="${sec.id}"><div class="thead"><h2>${esc(sec.title)}</h2><span class="num" id="sc-${sec.id}"></span></div><p style="color:var(--muted);margin:0 0 8px">${esc(sec.why)}</p><div class="redo"><ol>`;
+  sec.items.forEach((it,k)=>{
+    let q;
+    if(sec.type==="choice"){
+      q = esc(it[0]).replace("___", `<span class="chosen" id="ch-${sec.id}-${k}">___</span>`) + ` <span class="opts">${it[1].map(o=>`<button class="opt" data-sec="${sec.id}" data-k="${k}" data-v="${esc(o)}">${esc(o)}</button>`).join("")}</span>`;
+    } else {
+      q = esc(it[0]).split("___").map((part,j,arr)=>part+(j<arr.length-1?`<input class="pin" data-sec="${sec.id}" data-k="${k}" style="width:12ch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Answer ${k+1}">`:"")).join("") + ` <span class="src">(${esc(it[1])})</span>`;
+    }
+    ph += `<li id="li-${sec.id}-${k}">${q}<span class="fix"></span><div class="after" hidden><span class="en">${esc(sec.type==="choice"?it[3]:it[3])}</span><br><span class="why">→ ${esc(sec.type==="choice"?it[4]:it[4])}</span></div></li>`;
+  });
+  ph += `</ol><div class="qbar"><button class="primary" data-pcheck="${sec.id}">Check answers</button><button data-preset="${sec.id}">Try again</button><span class="saved" id="sv-${sec.id}"></span></div></div></section>`;
+});
+/* mini C-tests */
+const TOK2 = /^([^\p{L}]*)([\p{L}]+(?:-[\p{L}]+)*)?(.*)$/u;
+function gapify(mid){
+  const out=[]; let want=false, n=0;
+  mid.split(/\s+/).forEach(raw=>{
+    const m = raw.match(TOK2); const lead=m[1], core=m[2]||"", trail=m[3]||"";
+    if(!core || n>=20 || !want || core.length<2 || core.includes("-")){ out.push({plain:raw}); if(core && n<20 && !want) want=true; return; }
+    const g = Math.floor(core.length/2); out.push({lead, given:core.slice(0,g), miss:core.slice(g), trail, idx:n++}); want=false;
+  });
+  return out;
+}
+C.forEach(c=>{
+  c.pieces = gapify(c.mid);
+  ph += `<section class="text" id="${c.id}"><div class="thead"><h2>${esc(c.title)} <span class="lvl">${c.lvl}</span></h2><span class="num" id="sc-${c.id}"></span></div><p style="color:var(--muted);margin:0 0 8px">A new text with the same patterns: past tense, plurals, small words, articles. 20 gaps, take 5 minutes.</p>
+  <div class="redo"><p class="de" style="margin:0">${esc(c.first)} ${c.pieces.map(p=>p.plain!==undefined?esc(p.plain):`${esc(p.lead)}${esc(p.given)}<input class="cin" data-c="${c.id}" data-i="${p.idx}" maxlength="${p.given.length+1}" style="width:calc(${p.given.length+1}ch + 10px)" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Gap ${p.idx+1}">${esc(p.trail)}`).join(" ")} ${esc(c.last)}</p>
+  <div class="after" id="tr-${c.id}" hidden><h4 style="margin:12px 0 4px">Translation</h4>${c.en.map(e=>`<div class="en">${esc(e)}</div>`).join("")}<div class="why" id="mist-${c.id}" style="margin-top:8px"></div></div>
+  <div class="qbar"><button class="primary" data-ccheck="${c.id}">Check answers</button><button data-creset="${c.id}">Try again</button><span class="saved" id="sv-${c.id}"></span></div></div></section>`;
+});
+document.getElementById("practice").innerHTML = ph;
+
+/* behaviour */
+document.querySelectorAll("#practice input").forEach(inp=>{
+  inp.addEventListener("input",()=>{ const v = fixUmlauts(inp.value); if(v!==inp.value) inp.value = v; });
+  inp.addEventListener("keydown",e=>{ if(e.key!=="Enter") return; e.preventDefault(); const all=[...inp.closest(".redo").querySelectorAll("input")]; const n=all[all.indexOf(inp)+1]; if(n) n.focus(); else inp.closest(".redo").querySelector(".primary").click(); });
+});
+const chosen = {};
+document.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
+  const key = b.dataset.sec+"-"+b.dataset.k; chosen[key] = b.dataset.v;
+  document.getElementById("ch-"+key).textContent = b.dataset.v;
+  b.parentElement.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel", o===b));
+}));
+document.querySelectorAll("[data-pcheck]").forEach(btn=>btn.addEventListener("click",()=>{
+  const sec = P.find(s=>s.id===btn.dataset.pcheck); let ok=0; const wrong=[];
+  sec.items.forEach((it,k)=>{
+    const li = document.getElementById(`li-${sec.id}-${k}`);
+    let ans, good;
+    if(sec.type==="choice"){ ans = chosen[sec.id+"-"+k]||""; good = ans===it[2]; li.querySelector(".chosen").classList.toggle("okc",good); li.querySelector(".chosen").classList.toggle("badc",!good); }
+    else { const ins=[...li.querySelectorAll("input")]; ans = ins.map(i=>i.value.trim()).join(" "); good = it[2].split("|").some(a=>norm2(a)===norm2(ans)); ins.forEach(i=>{ i.classList.toggle("ok",good); i.classList.toggle("bad",!good); }); }
+    li.querySelector(".fix").textContent = good ? "✓" : "→ " + it[2];
+    li.querySelector(".after").hidden = false;
+    if(good) ok++; else wrong.push({q:it[0], answer:ans, correct:it[2]});
+  });
+  document.getElementById("sc-"+sec.id).textContent = `${ok}/${sec.items.length}`;
+  savePractice(PX+sec.id, {title:sec.title, ok, n:sec.items.length, wrong}, document.getElementById("sv-"+sec.id));
+}));
+document.querySelectorAll("[data-preset]").forEach(btn=>btn.addEventListener("click",()=>{
+  const id = btn.dataset.preset; const root = document.getElementById(id);
+  root.querySelectorAll("input").forEach(i=>{ i.value=""; i.classList.remove("ok","bad"); });
+  root.querySelectorAll(".fix").forEach(f=>f.textContent=""); root.querySelectorAll(".after").forEach(a=>a.hidden=true);
+  root.querySelectorAll(".chosen").forEach(c=>{ c.textContent="___"; c.classList.remove("okc","badc"); });
+  root.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));
+  Object.keys(chosen).forEach(k=>{ if(k.startsWith(id+"-")) delete chosen[k]; });
+  document.getElementById("sc-"+id).textContent = "";
+}));
+document.querySelectorAll("[data-ccheck]").forEach(btn=>btn.addEventListener("click",()=>{
+  const c = C.find(x=>x.id===btn.dataset.ccheck); let ok=0; const wrong=[];
+  const ins = [...document.querySelectorAll(`input[data-c="${c.id}"]`)];
+  ins.forEach(inp=>{ const p = c.pieces.find(x=>x.idx===+inp.dataset.i); const good = norm2(inp.value)===norm2(p.miss);
+    inp.classList.toggle("ok",good); inp.classList.toggle("bad",!good); if(good) ok++; else wrong.push({word:p.given+p.miss, answer:inp.value.trim()}); });
+  document.getElementById("sc-"+c.id).textContent = `${ok}/20`;
+  document.getElementById("mist-"+c.id).innerHTML = wrong.length ? "<b>Correct words for your mistakes:</b> " + wrong.map(w=>`<span class="g"><span class="r">${esc(w.word)}</span></span>`).join(" · ") : "<b>All correct!</b>";
+  document.getElementById("tr-"+c.id).hidden = false;
+  savePractice(PX+c.id, {title:c.title, ok, n:20, wrong}, document.getElementById("sv-"+c.id));
+}));
+document.querySelectorAll("[data-creset]").forEach(btn=>btn.addEventListener("click",()=>{
+  const id = btn.dataset.creset; document.querySelectorAll(`input[data-c="${id}"]`).forEach(i=>{ i.value=""; i.classList.remove("ok","bad"); });
+  document.getElementById("tr-"+id).hidden = true; document.getElementById("sc-"+id).textContent = "";
+}));
+}
+function showSet(n){
+  P = n==="2" ? P2 : P1; C = n==="2" ? C2 : C1; PX = n==="2" ? "s2-" : "s1-";
+  document.querySelectorAll("[data-set]").forEach(b=>{ b.classList.toggle("on", b.dataset.set===n); b.setAttribute("aria-selected", b.dataset.set===n); });
+  renderPractice();
+}
+document.querySelectorAll("[data-set]").forEach(b=>b.addEventListener("click",()=>{ try{ history.replaceState(null,"","#set"+b.dataset.set); }catch(e){} showSet(b.dataset.set); }));
+showSet((location.hash||"")==="#set2" ? "2" : "1");
+})();
+</script>
+</body>
+</html>
