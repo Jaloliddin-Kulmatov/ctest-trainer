@@ -58,3 +58,20 @@ img{max-width:100%}
 .btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .muted{color:var(--muted)}
+
+/* account button, menu and notices (assets/cloud.js) */
+.cc-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--ui);font-size:13.5px;padding:5px 11px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;text-decoration:none;white-space:nowrap}
+.cc-btn:hover{border-color:var(--accent)}
+.cc-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.cc-me{padding:3px;border-radius:999px;position:relative}
+.cc-me img,.cc-init{width:28px;height:28px;border-radius:50%;display:block}
+.cc-init{background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
+.cc-dot{position:absolute;right:0;bottom:0;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--card)}
+.cc-dot.busy{background:var(--mark-line)}
+.cc-dot.err{background:var(--bad)}
+.cc-pop{position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:60;width:min(320px,calc(100vw - 24px));background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.cc-pop img,.cc-box img{width:36px;height:36px;border-radius:50%;flex:none}
+.cc-pop .cc-init,.cc-box .cc-init{width:36px;height:36px;flex:none}
+.cc-box{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;background:var(--soft);padding:12px 14px;margin-bottom:14px}
+.cc-box>div{min-width:0;max-width:60ch}
+.cc-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;width:min(560px,calc(100vw - 24px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.2);font-size:14px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}

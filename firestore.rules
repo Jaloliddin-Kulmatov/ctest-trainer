@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // every signed-in user can read and write only their own items
+    match /users/{uid}/items/{item} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['k', 'json', 'u'])
+        && request.resource.data.k is string && request.resource.data.k.size() < 300
+        && request.resource.data.json is string && request.resource.data.json.size() < 950000;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

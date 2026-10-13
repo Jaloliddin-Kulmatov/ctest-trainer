@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy · C-Test Trainer</title>
+<meta name="description" content="What the C-Test Trainer stores, where, and how to delete it.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css">
+<script src="assets/common.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap">
+<style>
+/* Layout: one readable column of short sections */
+.page{max-width:760px}
+.page h2{font-size:18px;text-transform:none;letter-spacing:0;color:var(--ink);margin:0 0 6px}
+.page section{display:flex;flex-direction:column;gap:6px}
+.page p,.page li{max-width:68ch;margin:0}
+.page ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+</style>
+</head>
+<body>
+<main class="page">
+  <div>
+    <h1>Privacy</h1>
+    <p class="lead">C-Test Trainer is a free practice site. This page says what it stores and how you can delete it.</p>
+  </div>
+
+  <section>
+    <h2>Without an account</h2>
+    <p>Your results, mistakes, exam date and answers are saved in this browser only (localStorage). They are not sent to any server. The site has no analytics and no ads. Pages load fonts from Google Fonts, so your browser contacts Google for the font files.</p>
+  </section>
+
+  <section>
+    <h2>With a Google sign-in</h2>
+    <ul>
+      <li>Sign-in is handled by Google and Firebase Authentication. The site receives your name, email address and profile picture address and shows them in the account menu. It does not copy them into its own database. Firebase keeps an account record with your Google user ID and email.</li>
+      <li>Your progress (test results, mistakes, vocabulary and grammar scores, exam date, daily activity) is saved in Cloud Firestore under your user ID, so you can use it on other devices. Security rules allow only you to read or change your own items.</li>
+      <li>The site never sees your Google password.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Deleting your data</h2>
+    <ul>
+      <li><b>Delete all progress</b> on the <a href="index.html#data">dashboard</a> removes the data from this device and, when you are signed in, from your account.</li>
+      <li><b>Sign out and clear this device</b> in the account menu removes the local copy and keeps the account copy.</li>
+      <li>To have the Firebase account record removed as well, open an issue on the project's <a href="https://github.com/Jaloliddin-Kulmatov/ctest-trainer/issues">GitHub page</a>.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Not affiliated</h2>
+    <p>This site is not affiliated with onSET, the TestDaF-Institut or g.a.s.t. All practice texts were written for this site.</p>
+  </section>
+</main>
+</body>
+</html>

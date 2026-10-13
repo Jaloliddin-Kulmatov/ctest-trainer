@@ -125,12 +125,13 @@
 
   <section class="box" id="data">
     <h3>Your data</h3>
-    <p style="margin:0 0 12px;max-width:65ch" class="muted">Your progress is stored only in this browser. To continue on another device, export it here and import the file there.</p>
+    <div id="accountBox"></div>
+    <p style="margin:0 0 12px;max-width:65ch" class="muted">Your progress is stored in this browser. Signed in with Google, it is also saved to your account and follows you to other devices. You can always export it as a file and import it elsewhere.</p>
     <div class="confirm">
       <button class="btn" id="export" type="button">Export progress</button>
       <label class="btn" for="importFile" style="cursor:pointer">Import progress</label><input type="file" id="importFile" accept="application/json,.json" hidden>
       <button class="btn" id="reset" type="button">Delete all progress</button>
-      <span id="resetConfirm" hidden>Really delete everything? <button class="btn" id="resetYes" type="button" style="border-color:var(--bad);color:var(--bad)">Yes, delete</button> <button class="btn" id="resetNo" type="button">Cancel</button></span>
+      <span id="resetConfirm" hidden>Really delete everything, including the copy in your account if you are signed in? <button class="btn" id="resetYes" type="button" style="border-color:var(--bad);color:var(--bad)">Yes, delete</button> <button class="btn" id="resetNo" type="button">Cancel</button></span>
       <span class="msg" id="dataMsg"></span>
     </div>
   </section>
@@ -222,7 +223,7 @@ document.getElementById("importFile").onchange = e=>{ const f = e.target.files[0
   CTT.importData(f).then(()=>{ msg.textContent = "Imported. Reloading…"; setTimeout(()=>location.reload(), 600); }).catch(err=>{ msg.textContent = err.message || "Could not read this file."; }); };
 document.getElementById("reset").onclick = ()=>{ document.getElementById("resetConfirm").hidden = false; };
 document.getElementById("resetNo").onclick = ()=>{ document.getElementById("resetConfirm").hidden = true; };
-document.getElementById("resetYes").onclick = ()=>{ CTT.resetData(); msg.textContent = "All progress deleted. Reloading…"; setTimeout(()=>location.reload(), 600); };
+document.getElementById("resetYes").onclick = ()=>{ msg.textContent = "Deleting…"; CTT.resetData().then(()=>{ msg.textContent = "All progress deleted. Reloading…"; setTimeout(()=>location.reload(), 600); }).catch(()=>{ msg.textContent = "Could not delete the copy in your account. Check your connection and try again."; }); };
 
 renderExam(); renderStats(); renderChart(); renderCats(); renderLast();
 })();

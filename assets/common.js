@@ -56,7 +56,12 @@
       Object.entries(obj.data).forEach(([k,v])=>{ if(OWN_KEYS.includes(k)) localStorage.setItem(k, v); });
     });
   }
-  function resetData(){ OWN_KEYS.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); }
+  /* deletes the progress on this device and, when signed in, the copy in the account; returns a promise */
+  function resetData(){
+    const local = ()=>{ OWN_KEYS.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); };
+    if(window.CTTCloud && window.CTTCloud.signedIn()) return window.CTTCloud.wipeAll().then(local);
+    local(); return Promise.resolve();
+  }
 
   /* theme: system by default, or a saved choice */
   function applyTheme(){ let t = null; try{ t = localStorage.getItem("ctt-theme"); }catch(e){} if(t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
@@ -82,10 +87,18 @@
       <nav class="ctt-links" aria-label="Main">${links}</nav>
       <div class="ctt-tools">${chip}<button class="ctt-theme" type="button" aria-label="Switch light / dark theme" title="Light / dark">◐</button></div>
     </div></header>`);
-    document.body.insertAdjacentHTML("beforeend", `<footer class="ctt-foot"><div>Free practice for German C-tests such as onSET. Not affiliated with onSET, the TestDaF-Institut or g.a.s.t.; all texts were written for practice. Your progress is saved only in this browser — use <a href="index.html#data">export</a> to move it to another device.</div></footer>`);
+    document.body.insertAdjacentHTML("beforeend", `<footer class="ctt-foot"><div>Free practice for German C-tests such as onSET. Not affiliated with onSET, the TestDaF-Institut or g.a.s.t.; all texts were written for practice. Your progress is saved in this browser. Sign in with Google to keep it in your account, or use <a href="index.html#data">export</a> to move it. <a href="privacy.html">Privacy</a></div></footer>`);
     document.querySelector(".ctt-theme").addEventListener("click", toggleTheme);
+    document.dispatchEvent(new Event("ctt-nav-ready"));
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", nav); else nav();
 
+  /* optional account sync: loads assets/firebase-config.js, then assets/cloud.js (see README) */
+  (function(){
+    const here = document.currentScript && document.currentScript.src ? document.currentScript.src.replace(/[^\/]*$/, "") : "assets/";
+    ["firebase-config.js","cloud.js"].forEach(f=>{ const el = document.createElement("script"); el.src = here + f; el.async = false; document.head.appendChild(el); });
+  })();
+
+  window.CTT_OWN_KEYS = OWN_KEYS;
   window.CTT = { db, store, save, list, streak, today, markActive, getExamDate, setExamDate, daysLeft, exportData, importData, resetData, fixUmlauts };
 })();
