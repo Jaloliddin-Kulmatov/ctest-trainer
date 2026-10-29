@@ -1,4 +1,6 @@
-# C-Test Trainer : https://ctest-trainer-eight.vercel.app/
+# C-Test Trainer
+
+**Live:** [ctest-trainer-eight.vercel.app](https://ctest-trainer-eight.vercel.app) · **Code:** [github.com/Jaloliddin-Kulmatov/ctest-trainer](https://github.com/Jaloliddin-Kulmatov/ctest-trainer)
 
 Free practice website for German C-tests such as onSET. Static site (HTML, CSS, JavaScript), no build step. Progress is saved in the visitor's browser (localStorage) and can be exported and imported as a JSON file. Optionally, visitors can sign in with Google and keep their progress in their account (Firebase, see below).
 
